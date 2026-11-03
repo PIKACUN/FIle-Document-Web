@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Penjelas Dokumen</title>
+<script>document.documentElement.classList.add('js')</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  --bg:#f5f5f4;--sheet:#ffffff;--step:#ebebe5;--ink:#141414;--mut:#5c5c58;--line:#dcdcd5;--line2:#b9b9b1;
+  --marker:#ffe14d;--on-marker:#141414;--danger:#b8321f;--ok:#1d7a46;
+  --field:#141414;--field-ink:#f5f5f4;--field-mut:#b4b4ae;
+  --sans:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --ease-out:cubic-bezier(.22,1,.36,1);--ease-expo:cubic-bezier(.16,1,.3,1);--ease-in-out:cubic-bezier(.76,0,.24,1);
+  --t-press:140ms;--t-hover:180ms;--t-ui:240ms;--t-reveal:800ms;--stagger:70ms;
+  --gut:clamp(16px,2.4vw,32px);
+}
+:root[data-theme="dark"]{
+  --bg:#101010;--sheet:#191919;--step:#222222;--ink:#f2f2ee;--mut:#a6a6a0;--line:#2c2c2c;--line2:#474747;
+  --danger:#ff8a75;--ok:#5fd08f;--field:#1c1c1c;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101010;--sheet:#191919;--step:#222222;--ink:#f2f2ee;--mut:#a6a6a0;--line:#2c2c2c;--line2:#474747;
+  --danger:#ff8a75;--ok:#5fd08f;--field:#1c1c1c;
+}}
+*{box-sizing:border-box}
+html{height:100%;scroll-padding-top:80px;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:400 17px/1.55 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3{font-weight:600;letter-spacing:-.025em;line-height:1.05;margin:0}
+h2{font-size:22px;letter-spacing:-.015em;margin-bottom:12px}
+p{margin:0}
+[hidden]{display:none!important}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.note{font-size:14px;line-height:1.5;color:var(--mut)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.wrap{padding-inline:var(--gut)}
+
+/* Tombol: stabilo yang menyapu dari kiri */
+.btn{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:var(--ink);color:var(--bg);border:1px solid var(--ink);border-radius:4px;padding:11px 20px;font-weight:600;line-height:1.2;white-space:nowrap;transition:color var(--t-hover) ease,border-color var(--t-hover) ease,transform var(--t-press) var(--ease-out)}
+.btn:before{content:"";position:absolute;inset:-1px;z-index:-1;background:var(--marker);transform:scaleX(0);transform-origin:left;transition:transform 380ms var(--ease-out)}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}
+.btn.sm{padding:6px 12px;font-size:14px}
+.btn.danger{background:transparent;color:var(--danger);border-color:currentColor}
+.btn.danger:before{background:var(--danger)}
+.btn:disabled{opacity:.55;cursor:wait}
+@media(hover:hover){
+  .btn:hover,.btn:focus-visible{color:var(--on-marker);border-color:var(--marker)}
+  .btn:hover:before,.btn:focus-visible:before{transform:scaleX(1)}
+  .btn.danger:hover,.btn.danger:focus-visible{color:var(--bg);border-color:var(--danger)}
+}
+
+/* Bilah atas */
+header{position:sticky;top:0;z-index:10;background:var(--bg);view-transition-name:site-header;transition:transform 420ms var(--ease-out)}
+header.hide{transform:translateY(-100%)}
+.bar{padding:12px var(--gut);display:flex;align-items:center;gap:10px;position:relative}
+.logo{font-weight:700;letter-spacing:-.02em;background:none;border:0;font-size:17px;padding:0;display:flex;align-items:center;gap:9px}
+.mark{width:18px;height:18px;background:var(--marker);transform:skewX(-14deg);transition:transform 400ms var(--ease-out)}
+.logo:hover .mark{transform:skewX(-14deg) scaleX(1.45)}
+.sp{flex:1}
+.links{display:flex;gap:8px;align-items:center}
+#burger{display:none}
+.ai-pill{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:500;white-space:nowrap;color:var(--mut);padding-inline:6px}
+.ai-pill:before{content:"";width:8px;height:8px;border-radius:50%;background:#c48212;transition:background var(--t-ui) ease}
+.ai-pill.on{color:var(--ink)}.ai-pill.on:before{background:var(--ok)}
+.ai-pill.off:before{background:var(--danger)}
+
+main.app{max-width:1240px;margin:0 auto;padding:24px var(--gut) 56px}
+footer{padding:18px var(--gut) 26px;color:var(--mut);font-size:14px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+body.auth-page footer{display:none}
+
+/* Kalimat dokumen dan sapuan stabilo */
+.mk{background-image:linear-gradient(var(--marker),var(--marker));background-repeat:no-repeat;background-position:0 62%;background-size:100% 84%;color:var(--on-marker);padding:.06em .1em;margin-inline:-.1em;transition:background-size 760ms var(--ease-in-out),color 300ms ease}
+.fl{background-image:linear-gradient(var(--marker),var(--marker));background-repeat:no-repeat;background-position:0 62%;background-size:100% 84%;color:var(--on-marker);outline:2px solid var(--ink);outline-offset:1px}
+.paper{background:var(--sheet);border:1px solid var(--line);border-radius:4px;font:400 17px/1.7 var(--serif);padding:clamp(16px,2vw,28px)}
+.paper-h{font:600 14px/1.4 var(--sans);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;color:var(--mut)}
+.paper-h b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+
+/* Beranda */
+.hero{padding-top:clamp(28px,5vw,72px);padding-bottom:clamp(40px,6vw,88px)}
+.hero h1{font-size:min(8vw,128px);line-height:.98;letter-spacing:-.045em;margin-bottom:clamp(24px,4vw,56px)}
+.ln{display:block;overflow:clip;overflow-clip-margin:.08em;padding-bottom:.1em;margin-bottom:-.1em}
+.ln>span{display:block;white-space:nowrap}
+.hero-g{display:grid;grid-template-columns:5fr 7fr;gap:clamp(24px,4vw,64px);align-items:start}
+.lede{font-size:20px;line-height:1.42;max-width:30em;margin-bottom:24px}
+.hero .note{margin-top:14px;max-width:32em}
+.hits{display:grid;gap:2px;margin-top:14px;font:500 14px/1.4 var(--sans)}
+.hit{display:flex;gap:12px;justify-content:space-between;text-align:left;background:var(--step);border:0;padding:10px 12px;color:var(--ink);transition:background var(--t-hover) ease,color var(--t-hover) ease,padding-left 300ms var(--ease-out)}
+.hit span:last-child{white-space:nowrap;font-weight:600}
+@media(hover:hover){.hit:hover{background:var(--marker);color:var(--on-marker);padding-left:18px}}
+
+.chapter{padding-block:clamp(72px,11vw,168px)}
+.chapter>.head{margin-bottom:clamp(28px,4vw,56px)}
+.head h2,.big-h{font-size:clamp(32px,5vw,72px);letter-spacing:-.04em;line-height:1;margin-bottom:16px}
+.head p{font-size:20px;color:var(--mut);max-width:34em}
+.rv-line{overflow:clip;overflow-clip-margin:.08em;padding-bottom:.08em}
+
+/* Tester dan baris kemampuan */
+.split-5-7{display:grid;grid-template-columns:5fr 7fr;gap:clamp(24px,4vw,64px);align-items:start}
+.in{width:100%;padding:11px 13px;border:1px solid var(--line2);border-radius:4px;background:var(--sheet);transition:border-color var(--t-hover) ease,background var(--t-hover) ease}
+.in:focus{border-color:var(--ink);outline:0}
+textarea.in{display:block;resize:vertical;font:17px/1.6 var(--serif);caret-color:var(--ink)}
+#pgr{margin-top:18px}
+#pgr>p{margin-bottom:12px}
+.pgv{font:17px/1.7 var(--serif)}
+.gauge{height:10px;background:var(--step);overflow:hidden;margin:6px 0 6px}
+.gauge i{display:block;height:100%;background:var(--ink);transform-origin:left}
+.gauge.high i{background:var(--danger)}
+.statement{font-size:clamp(24px,2.5vw,36px);line-height:1.2;letter-spacing:-.02em;font-weight:500;max-width:25em;margin-bottom:clamp(48px,7vw,104px);view-timeline-name:--ink}
+.frag-row{display:grid;grid-template-columns:5fr 7fr;gap:clamp(24px,4vw,64px);align-items:start;padding-bottom:clamp(48px,6vw,88px)}
+.frag-row h3{font-size:clamp(22px,2.5vw,36px);letter-spacing:-.03em;margin-bottom:12px}
+.frag-row>div>p{color:var(--mut);max-width:28em}
+.frag{background:var(--step);padding:clamp(16px,2.4vw,32px);border-radius:4px;min-width:0}
+.m{padding:10px 13px;border-radius:4px;max-width:90%;white-space:pre-wrap;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
+.m{width:fit-content}
+.m.u{background:var(--ink);color:var(--bg);align-self:flex-end;margin-left:auto}
+.m.a{background:var(--sheet);border:1px solid var(--line);align-self:flex-start}
+.m.fresh{transform-origin:left bottom}
+.m.u.fresh{transform-origin:right bottom}
+.frag .m+.m{margin-top:8px}
+.seg{display:inline-flex;gap:2px;margin-bottom:14px}
+.seg button{border:0;background:transparent;padding:6px 12px;font-weight:600;font-size:14px;position:relative;color:var(--mut);transition:color var(--t-hover) ease}
+.seg button.on{color:var(--on-marker);background:var(--marker)}
+.seg .ti{position:absolute;inset:0;background:var(--marker);z-index:0;view-transition-name:seg-on}
+.seg span{position:relative;z-index:1}
+#kind-out ul{margin:6px 0 0;padding-left:20px;font:17px/1.6 var(--serif)}
+#kind-out b{font-weight:600}
+
+/* Akordeon arsitektur */
+.acc{display:grid;gap:2px}
+.acc-item{background:var(--step);padding-inline:clamp(14px,1.6vw,22px)}
+.acc-b{width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:clamp(14px,1.6vw,22px) 0;background:none;border:0;text-align:left;font-size:clamp(22px,2.5vw,36px);font-weight:600;letter-spacing:-.03em;line-height:1.05;transition:padding-left 400ms var(--ease-out)}
+.acc-b i{flex:none;width:.5em;height:.5em;position:relative;transition:transform 360ms var(--ease-out)}
+.acc-b i:before,.acc-b i:after{content:"";position:absolute;background:currentColor}
+.acc-b i:before{left:0;right:0;top:calc(50% - 1px);height:2px}
+.acc-b i:after{top:0;bottom:0;left:calc(50% - 1px);width:2px}
+.acc-item.on .acc-b i{transform:rotate(45deg)}
+@media(hover:hover){.acc-b:hover{padding-left:12px}}
+.acc-p{display:grid;grid-template-rows:0fr;transition:grid-template-rows 340ms var(--ease-out)}
+.acc-p>div{overflow:hidden}
+.acc-p p{padding-bottom:20px;max-width:38em}
+.acc-item.on .acc-p{grid-template-rows:1fr}
+
+/* Paket */
+.plan-rows{display:grid;gap:2px}
+.plan-row{display:grid;grid-template-columns:2fr 2fr 4fr auto;gap:20px;align-items:center;padding:clamp(16px,2vw,26px) clamp(14px,1.6vw,22px);background:var(--step);transition:background var(--t-ui) ease}
+.plan-row h3{font-size:clamp(22px,2.5vw,36px);letter-spacing:-.025em;margin:0}
+.plan-row .price{font-weight:500}
+.plan-row ul{margin:0;padding:0;list-style:none;color:var(--mut);font-size:14px}
+.plan-row.recommended{background:var(--marker);color:var(--on-marker)}
+.plan-row.recommended ul{color:var(--on-marker)}
+.plan-row .btn{min-width:150px}
+.plan-row.recommended .btn{--ink:#141414;--bg:#f5f5f4}
+.plan-row.recommended .btn:hover{--marker:#fff;border-color:#fff}
+#paket>.note{margin-top:14px}
+
+/* Masuk dan daftar */
+.auth-g{display:grid;grid-template-columns:5fr 7fr;min-height:calc(100svh - 58px)}
+.auth-f{padding:clamp(24px,5vw,72px) var(--gut);display:flex;flex-direction:column;justify-content:center}
+.auth{width:100%;max-width:440px}
+.auth-a{--ink:var(--field-ink);background:var(--field);color:var(--ink);padding:clamp(24px,5vw,72px);display:flex;align-items:flex-end}
+.auth-a p{font:400 clamp(26px,3.4vw,50px)/1.28 var(--serif);letter-spacing:-.015em;max-width:18em}
+.auth-a .mk{--on-marker:#141414}
+.tabs{display:flex;gap:18px;margin-bottom:20px;overflow-x:auto;scrollbar-width:none}
+.tab{position:relative;background:none;border:0;padding:8px 0 10px;font-weight:600;color:var(--mut);white-space:nowrap;transition:color var(--t-hover) ease}
+.tab.on{color:var(--ink)}
+.tab-i{position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--marker);view-transition-name:tab-on}
+label{display:block;font-size:14px;font-weight:500;margin:14px 0 5px}
+.pw,.send{display:flex;gap:6px}
+.pw .in,.send .in{flex:1;min-width:0}
+.err{color:var(--danger);font-size:14px;min-height:20px;margin:10px 0}
+.auth h1{font-size:28px;margin-bottom:8px}
+
+/* Ruang kerja */
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:4px;padding:clamp(16px,1.8vw,24px);margin-bottom:14px}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--sheet);border:1px solid var(--line);border-radius:4px;margin-bottom:14px}
+.stats3 .card{margin:0;border:0;background:none}
+.stats3 .card+.card{border-left:1px solid var(--line);border-radius:0}
+.big{display:block;font-size:34px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.15}
+.drop{border:1px dashed var(--line2);border-radius:4px;padding:clamp(24px,4vw,44px) 14px;text-align:center;color:var(--mut);transition:background 240ms ease,border-color 240ms ease,transform 340ms var(--ease-out)}
+.drop>p:first-child{margin-bottom:12px;color:var(--ink)}
+.drop .note{margin-top:14px}
+.drop.over{background:var(--marker);color:var(--on-marker);border-color:var(--on-marker);transform:scale(1.008)}
+.drop.over>p,.drop.over .note{color:var(--on-marker)}
+.li{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line);transition:padding-left 300ms var(--ease-out)}
+.li:first-of-type{border-top:0}
+@media(hover:hover){.li:hover{padding-left:6px}}
+.nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border:0;text-align:left;font-weight:600;padding:0}
+.lg{display:flex;gap:10px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+.lg:first-of-type{border-top:0}
+.lg .t{flex:1;min-width:0}
+.lg .t div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:12px;font-weight:500;background:var(--step);border-radius:3px;padding:2px 7px;color:var(--mut);white-space:nowrap}
+.page-t{font-size:clamp(22px,2.2vw,28px);letter-spacing:-.02em;overflow-wrap:anywhere;margin:0}
+.title-bar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.split>div>.card:last-child{margin-bottom:0}
+.docv{position:sticky;top:72px;max-height:calc(100svh - 92px);overflow:auto;margin:0}
+.docv span{border-radius:1px}
+.s3{margin:0 0 18px}
+.s3 h3{margin:0 0 6px;font-size:14px;color:var(--mut);font-weight:500;letter-spacing:0;line-height:1.4}
+.s3 ul{margin:0;padding-left:20px}
+.risk{display:block;width:100%;text-align:left;background:var(--step);border:0;padding:10px 12px;margin:2px 0;color:var(--ink);transition:background var(--t-hover) ease,color var(--t-hover) ease,padding-left 300ms var(--ease-out)}
+@media(hover:hover){.risk:hover{background:var(--marker);color:var(--on-marker);padding-left:18px}}
+.chat{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:360px;overflow-y:auto}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1px solid var(--line2);background:transparent;border-radius:4px;padding:5px 11px;font-size:14px;transition:background var(--t-hover) ease,border-color var(--t-hover) ease,color var(--t-hover) ease,transform var(--t-press) var(--ease-out)}
+.chip:active{transform:scale(.97)}
+@media(hover:hover){.chip:hover{background:var(--marker);border-color:var(--marker);color:var(--on-marker)}}
+.wa{display:grid;gap:14px}
+.wa .card{margin:0}
+.qr{display:grid;grid-template-columns:repeat(21,1fr);width:176px;aspect-ratio:1;background:#fff;padding:8px;margin:12px 0}
+.qr i{background:#fff}.qr i.k{background:#111}
+.thinking{font-size:14px;color:var(--mut)}
+
+/* Tampilan proses */
+#proc{position:fixed;inset:0;background:rgba(10,10,10,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.pbox{background:var(--sheet);border-radius:4px;box-shadow:0 18px 60px rgba(0,0,0,.28);padding:22px;width:min(400px,100%)}
+.pbox ul{list-style:none;margin:14px 0;padding:0;font:16px/1.9 var(--serif)}
+.pbox li{color:var(--mut);transition:color 240ms ease}
+.pbox li span{padding:.05em .1em;margin-inline:-.1em;background-image:linear-gradient(var(--marker),var(--marker));background-repeat:no-repeat;background-position:0 62%;background-size:0 84%;transition:background-size 340ms var(--ease-in-out)}
+.pbox li.on,.pbox li.ok{color:var(--on-marker)}
+:root[data-theme="dark"] .pbox li.ok{color:var(--on-marker)}
+.pbox li.on span,.pbox li.ok span{background-size:100% 84%}
+.bar2{height:6px;background:var(--step);overflow:hidden}
+.bar2 i{display:block;height:100%;background:var(--ink);transform:scaleX(0);transform-origin:left;transition:transform 340ms var(--ease-out)}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:4px;font-size:14px;opacity:0;pointer-events:none;transform:translate(-50%,14px);transition:opacity 220ms ease,transform 380ms var(--ease-out);z-index:30;max-width:calc(100vw - 32px)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:900px){
+  .hero-g,.split,.split-5-7,.frag-row,.auth-g{grid-template-columns:1fr}
+  .auth-a{display:none}
+  .docv{position:static;max-height:300px}
+  .scene-stage{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);align-items:start;gap:14px;padding-block:20px}
+  .scene-doc{align-self:stretch;height:100%;grid-template-rows:minmax(0,1fr) auto;overflow:clip}
+  .scene-doc .paper{font-size:14px;line-height:1.55;padding:14px;overflow:clip;min-height:0}
+  .steps h3{margin-bottom:8px}
+  .plan-row{grid-template-columns:1fr auto;gap:6px 14px}
+  .plan-row ul{grid-column:1/-1}
+  .plan-row .btn{grid-column:1/-1;width:100%;margin-top:8px}
+  .plan-row .price{text-align:right}
+}
+@media(max-width:640px){
+  #burger{display:inline-flex}
+  .ai-pill{display:none}
+  .links{display:none;position:absolute;left:0;right:0;top:100%;background:var(--bg);padding:10px var(--gut) 16px;box-shadow:0 12px 24px rgba(0,0,0,.14);flex-direction:column;align-items:stretch;transform-origin:top right}
+  .links.open{display:flex}
+  .links .btn{width:100%}
+  .stats3{grid-template-columns:1fr}
+  .stats3 .card+.card{border-left:0;border-top:1px solid var(--line)}
+  .li{flex-wrap:wrap}.nm{flex-basis:100%}
+}
+
+/* Semua keadaan tersembunyi hanya ada di sini; tanpa gerak, tampilannya sudah selesai */
+@media(prefers-reduced-motion:no-preference){
+  html.js .rv{opacity:0;transform:translateY(24px)}
+  html.js .rv.is-in{opacity:1;transform:none;transition:opacity 600ms ease calc(var(--i,0)*var(--stagger)),transform var(--t-reveal) var(--ease-expo) calc(var(--i,0)*var(--stagger))}
+  html.js .rv-line>span{transform:translateY(106%)}
+  html.js .rv-line.is-in>span{transform:none;transition:transform 1000ms var(--ease-expo) calc(var(--i,0)*90ms)}
+  html.js .rv-open{clip-path:inset(0 100% 0 0)}
+  html.js .rv-open.is-in{clip-path:inset(0);transition:clip-path 1100ms var(--ease-in-out)}
+  html.js .rv-row{opacity:0;transform:translateX(-18px)}
+  html.js .rv-row.is-in{opacity:1;transform:none;transition:opacity 480ms ease calc(var(--i,0)*var(--stagger)),transform 640ms var(--ease-out) calc(var(--i,0)*var(--stagger))}
+
+  @keyframes line-up{from{transform:translateY(106%)}to{transform:none}}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @keyframes sweep{from{background-size:0 84%}to{background-size:100% 84%}}
+  @keyframes sweep-ink{from{background-size:0 84%;color:var(--ink)}60%{color:var(--ink)}to{background-size:100% 84%;color:var(--on-marker)}}
+  @keyframes grow{from{transform:scaleX(0)}to{transform:none}}
+  @keyframes open-x{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0)}}
+  @keyframes fresh{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+  @keyframes menu{from{opacity:0;transform:scale(.97) translateY(-6px)}to{opacity:1;transform:none}}
+  @keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+
+  .enter .hero h1 .ln>span{animation:line-up 1000ms var(--ease-expo) both;animation-delay:calc(var(--i,0)*90ms)}
+  .enter .hero-t{animation:rise 800ms var(--ease-expo) 240ms both}
+  .enter .hero-doc{animation:open-x 1100ms var(--ease-in-out) 120ms both}
+  .enter .hero-doc .mk,.enter .docv .mk,.enter .auth-a .mk{animation:sweep-ink 760ms var(--ease-in-out) both;animation-delay:calc(var(--k,0)*170ms + 720ms)}
+  .enter .rise{animation:rise 620ms var(--ease-out) both;animation-delay:calc(var(--i,0)*var(--stagger))}
+  .enter .li,.enter .lg{animation:rise 520ms var(--ease-out) both;animation-delay:calc(var(--i,0)*55ms + 120ms)}
+  .enter .gauge i,.pg-in .gauge i{animation:grow 1000ms var(--ease-expo) 300ms both}
+  .pg-in .mk{animation:sweep-ink 620ms var(--ease-in-out) both;animation-delay:calc(var(--k,0)*130ms + 140ms)}
+  .pg-in>p,.pg-in .pgv{animation:fade 420ms ease both}
+  .m.fresh{animation:fresh 420ms var(--ease-out) both}
+  .fl{animation:sweep 620ms var(--ease-in-out) both}
+  .links.open{animation:menu var(--t-ui) var(--ease-out)}
+  #proc{animation:fade 200ms ease both}
+  .pbox{animation:pop 340ms var(--ease-out) both}
+  .qr{animation:open-x 620ms var(--ease-in-out) both}
+  .kind-in{animation:rise 420ms var(--ease-out) both}
+
+
+  /* Perpindahan antar-halaman */
+  ::view-transition-old(root){animation:vt-out 180ms var(--ease-out) both}
+  ::view-transition-new(root){animation:vt-in 420ms var(--ease-out) both}
+  @keyframes vt-out{to{opacity:0}}
+  @keyframes vt-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  ::view-transition-group(site-header){animation:none}
+  ::view-transition-old(site-header){display:none}
+  ::view-transition-new(site-header){animation:none}
+  ::view-transition-group(tab-on),::view-transition-group(seg-on){animation-duration:420ms;animation-timing-function:var(--ease-in-out)}
+  ::view-transition-group(doc-title){animation-duration:560ms;animation-timing-function:var(--ease-in-out)}
+  ::view-transition-old(doc-title),::view-transition-new(doc-title){height:100%;object-fit:none;object-position:left center}
+}
+
+/* Tumpukan dokumen */
+.deal{background:var(--step);position:relative}
+.deal-stage{display:grid;grid-template-columns:7fr 5fr;gap:clamp(24px,4vw,64px);align-items:center;padding:clamp(40px,6vw,96px) var(--gut)}
+.deal-t h2{font-size:16px;font-weight:500;letter-spacing:0;color:var(--mut);margin-bottom:10px}
+.deal-words{display:grid;overflow:clip;overflow-clip-margin:.06em;font-size:min(13vw,190px);font-weight:600;letter-spacing:-.05em;line-height:1.02;margin:0;list-style:none;padding:0}
+.deal-words li{grid-area:auto}
+.deal-t p{font-size:20px;line-height:1.4;max-width:24em;margin-top:18px}
+.sheets{display:grid;gap:12px;min-width:0}
+.sheet{background:#f7f7f6;color:#141414;padding:clamp(18px,2vw,30px);border-radius:3px;font:400 17px/1.55 var(--serif);min-height:clamp(240px,50svh,460px);display:flex;flex-direction:column;gap:14px}
+.sheet b{font:600 clamp(20px,1.9vw,26px)/1.15 var(--sans);letter-spacing:-.02em}
+.sheet small{font:500 14px/1.3 var(--sans);color:#5c5c58;margin-top:auto}
+.sheet .mk{--on-marker:#141414}
+.deal.is-live{height:calc((var(--hold,3) + 1)*100svh)}
+.deal.is-live .deal-stage{position:sticky;top:0;height:100svh;overflow:clip;padding-block:24px}
+.deal.is-live .deal-words li{grid-area:1/1}
+.deal.is-live .sheets{display:block;position:relative;height:min(62svh,520px)}
+.deal.is-live .sheet{position:absolute;inset:0;box-shadow:0 14px 40px rgba(0,0,0,.2);will-change:transform}
+
+/* Baca, sorot, tanya */
+.walk{--ink:var(--field-ink);--mut:var(--field-mut);background:var(--field);color:var(--ink);position:relative}
+.walk-stage{display:grid;grid-template-columns:5fr 7fr;gap:clamp(24px,4vw,64px);align-items:center;padding:clamp(48px,7vw,96px) var(--gut)}
+.walk-t{display:grid;gap:18px;align-content:center;min-width:0}
+.walk-t h2{font-size:16px;font-weight:500;letter-spacing:0;margin:0;color:var(--mut)}
+.steps{display:grid;gap:32px;list-style:none;margin:0;padding:0}
+.steps h3{font-size:clamp(52px,8vw,128px);letter-spacing:-.05em;line-height:1;margin-bottom:14px;overflow:clip;overflow-clip-margin:.06em}
+.steps h3 span{display:block}
+.steps p{font-size:20px;line-height:1.4;max-width:24em}
+.walk-doc{--ink:#141414;--mut:#5c5c58;--sheet:#f7f7f6;--line:#f7f7f6;--bg:#f7f7f6;color:var(--ink);display:grid;gap:10px;min-width:0}
+.qa{background:var(--sheet);border-radius:4px;padding:14px 16px;font-size:14px;line-height:1.45;display:grid;gap:8px}
+.qa b{font-weight:600}
+.src{display:inline-block;font:600 14px/1.3 var(--sans);background:var(--marker);color:var(--on-marker);padding:3px 8px;border:0;border-radius:2px;justify-self:start;transition:transform var(--t-press) var(--ease-out)}
+.src:active{transform:scale(.97)}
+.walk.is-live{height:calc((var(--hold,3) + 1)*100svh)}
+.walk.is-live .walk-stage{position:sticky;top:0;height:100svh;overflow:clip;padding-block:clamp(20px,4vw,56px)}
+.walk.is-live .steps>li{grid-area:1/1}
+.walk.is-live .walk-doc .paper{will-change:transform}
+
+/* Baris besar yang didorong scroll */
+.pushed{overflow:clip;font-size:clamp(56px,11vw,176px);font-weight:600;letter-spacing:-.05em;line-height:1.05;white-space:nowrap;padding-block:clamp(8px,2vw,24px) clamp(56px,8vw,120px)}
+.pushed span{display:inline-block;will-change:transform}
+
+/* Penutup: goresan stabilo memenuhi layar */
+.finale{position:relative}
+.finale-dark{display:none}
+.finale-fill{background:var(--marker);color:var(--on-marker);padding:clamp(48px,7vw,96px) var(--gut) clamp(16px,2vw,28px);overflow:clip;--ink:#141414;--bg:#f5f5f4}
+.finale-fill h2{font-size:clamp(32px,5vw,72px);letter-spacing:-.04em;margin-bottom:12px}
+.finale-fill>p:not(.wordmark){font-size:20px;margin-bottom:22px}
+.finale-fill .btn:hover{--marker:#fff;border-color:#fff}
+.finale .wordmark{font-size:11.2vw;font-weight:700;letter-spacing:-.05em;line-height:1;white-space:nowrap;margin-top:clamp(40px,7vw,104px);overflow:clip;overflow-clip-margin:.06em}
+.wordmark i{display:inline-block;font-style:normal;white-space:pre}
+.finale.is-live{height:calc((var(--hold,2) + 1)*100svh)}
+.finale.is-live .finale-stage{position:sticky;top:0;height:100svh;overflow:clip;background:var(--bg)}
+.finale.is-live .finale-dark{display:flex;align-items:center;position:absolute;inset:0;padding:var(--gut);font-size:clamp(34px,6.4vw,104px);font-weight:600;letter-spacing:-.04em;line-height:1.02}
+.finale.is-live .finale-fill{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding-bottom:clamp(16px,2vw,28px)}
+.finale.is-live .wordmark{margin-top:clamp(24px,5vw,72px)}
+
+/* Lain-lain */
+#prog{position:fixed;left:0;right:0;top:0;height:5px;background:var(--marker);transform:scaleX(0);transform-origin:left;z-index:12;pointer-events:none}
+#wipe{position:fixed;inset:0;background:var(--marker);transform:scaleX(0);z-index:40;pointer-events:none}
+.btn{translate:var(--mx,0) var(--my,0);transition:color var(--t-hover) ease,border-color var(--t-hover) ease,transform var(--t-press) var(--ease-out),translate 420ms var(--ease-out)}
+.hit.on{background:var(--marker);color:var(--on-marker);padding-left:18px}
+.hero-doc{perspective:1400px}
+.hero-doc .paper{will-change:transform}
+.rv-words{overflow:visible;padding-bottom:0}
+.wd{display:inline-block;overflow:clip;overflow-clip-margin:.08em;vertical-align:top;padding-bottom:.08em;margin-bottom:-.08em}
+.wd>span{display:inline-block}
+.in:not(textarea){background-image:linear-gradient(var(--marker),var(--marker));background-repeat:no-repeat;background-position:0 100%;background-size:0 4px;transition:border-color var(--t-hover) ease,background-size 420ms var(--ease-out)}
+.in:not(textarea):focus{background-size:100% 4px}
+.li{position:relative;isolation:isolate}
+.li:before{content:"";position:absolute;inset:0 -8px;background:var(--step);z-index:-1;transform:scaleX(0);transform-origin:left;transition:transform 420ms var(--ease-out)}
+@media(hover:hover){.li:hover:before{transform:scaleX(1)}.plan-row:hover h3{transform:translateX(10px)}}
+.plan-row h3{transition:transform 420ms var(--ease-out)}
+.thinking:after{content:"";display:inline-block;width:1.4em;height:.5em;margin-left:6px;background:var(--marker);transform-origin:left}
+
+@media(max-width:900px){
+  .deal-stage,.walk-stage{grid-template-columns:1fr;gap:18px}
+  .deal.is-live .deal-stage{grid-template-rows:auto minmax(0,1fr);align-items:start}
+  .deal.is-live .sheets{height:100%;max-height:56svh}
+  .walk.is-live .walk-stage{grid-template-rows:auto minmax(0,1fr);align-items:start;gap:14px;padding-block:20px}
+  .walk.is-live .walk-doc{align-self:stretch;height:100%;grid-template-rows:minmax(0,1fr) auto;overflow:clip}
+  .walk-doc .paper{font-size:14px;line-height:1.55;padding:14px;overflow:clip;min-height:0}
+  .steps h3{margin-bottom:8px}
+}
+
+@media(prefers-reduced-motion:no-preference){
+  html.js .rv-words .wd>span{transform:translateY(110%)}
+  html.js .rv-words.is-in .wd>span{transform:none;transition:transform 900ms var(--ease-expo) calc(var(--i,0)*70ms)}
+  .enter .hit{animation:slide-r 620ms var(--ease-out) both;animation-delay:calc(var(--k,0)*90ms + 620ms)}
+  @keyframes slide-r{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
+  @keyframes slide-l{from{opacity:0;transform:translateX(-36px)}to{opacity:1;transform:none}}
+  .enter .rise{animation:rise-big 760ms var(--ease-expo) both;animation-delay:calc(var(--i,0)*90ms)}
+  @keyframes rise-big{from{opacity:0;transform:translateY(36px)}to{opacity:1;transform:none}}
+  .enter .split>.docv{animation:slide-l 820ms var(--ease-expo) both}
+  .enter .s3{animation:slide-r 620ms var(--ease-out) both}
+  .enter .s3:nth-of-type(1){animation-delay:120ms}.enter .s3:nth-of-type(2){animation-delay:190ms}.enter .s3:nth-of-type(3){animation-delay:260ms}.enter .s3:nth-of-type(4){animation-delay:330ms}.enter .s3:nth-of-type(5){animation-delay:400ms}
+  .enter .risk{animation:slide-r 520ms var(--ease-out) both;animation-delay:calc(var(--i,0)*70ms + 360ms)}
+  .enter .auth>*{animation:rise-big 700ms var(--ease-expo) both}
+  .enter .auth-a{animation:open-x 900ms var(--ease-in-out) both}
+  .enter .card h2{animation:fade 500ms ease 140ms both}
+  .lit{animation:sweep 720ms var(--ease-in-out) both}
+  .thinking:after{animation:grow 900ms var(--ease-in-out) infinite alternate}
+  .err:not(:empty){animation:nudge 340ms var(--ease-out)}
+  @keyframes nudge{0%{transform:translateX(-8px)}50%{transform:translateX(5px)}100%{transform:none}}
+
+  /* Proses layar penuh: nama langkah naik satu per satu */
+  #proc{background:var(--field);align-items:stretch;padding:0}
+  .pbox{--ink:var(--field-ink);background:none;box-shadow:none;width:100%;border-radius:0;padding:var(--gut);display:flex;flex-direction:column;justify-content:flex-end;color:var(--field-ink)}
+  .pbox b{font-weight:500;color:var(--field-mut)}
+  .pbox ul{display:grid;overflow:clip;font:600 clamp(36px,8vw,128px)/1.08 var(--sans);letter-spacing:-.045em;margin:10px 0 22px}
+  .pbox li{grid-area:1/1;color:var(--field-ink)!important;transform:translateY(112%);transition:transform 340ms var(--ease-in-out)}
+  .pbox li span{background:none;padding:0;margin:0}
+  .pbox li.on{transform:none}
+  .pbox li.ok{transform:translateY(-112%)}
+  .bar2{height:12px;background:#2c2c2c}
+  .bar2 i{background:var(--marker)}
+
+  /* Geser antar-tab sesuai arah */
+  html[data-dir="next"]::view-transition-old(root){animation:tab-out-l 220ms var(--ease-out) both}
+  html[data-dir="next"]::view-transition-new(root){animation:tab-in-r 460ms var(--ease-out) both}
+  html[data-dir="prev"]::view-transition-old(root){animation:tab-out-r 220ms var(--ease-out) both}
+  html[data-dir="prev"]::view-transition-new(root){animation:tab-in-l 460ms var(--ease-out) both}
+  @keyframes tab-out-l{to{opacity:0;transform:translateX(-48px)}}
+  @keyframes tab-out-r{to{opacity:0;transform:translateX(48px)}}
+  @keyframes tab-in-r{from{opacity:0;transform:translateX(64px)}}
+  @keyframes tab-in-l{from{opacity:0;transform:translateX(-64px)}}
+}
+
+/* Arah baru: satu kotak stabilo. Tiap bab satu warna penuh, huruf poster, tanpa sudut membulat. */
+:root{
+  --yellow:#ffe14d;--pink:#ff5fa2;--green:#39e58c;--orange:#ff7a1f;--blue:#38c6ff;--black:#141414;
+  --bg:#ffffff;--sheet:#ffffff;--step:#efefec;--ink:#141414;--mut:#4f4f4b;--line:#efefec;--line2:#141414;
+  --marker:var(--yellow);--on-marker:#141414;--field:#141414;--field-ink:#ffffff;--field-mut:#c9c9c4;
+  --display:"Anton","Arial Narrow",Impact,sans-serif;--sans:"Work Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+:root[data-theme="dark"]{--bg:#141414;--sheet:#1f1f1f;--step:#262626;--ink:#f4f4f2;--mut:#b5b5b0;--line:#262626;--line2:#f4f4f2;--field:#000000}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141414;--sheet:#1f1f1f;--step:#262626;--ink:#f4f4f2;--mut:#b5b5b0;--line:#262626;--line2:#f4f4f2;--field:#000000}}
+body{font-weight:500}
+h1,h2,h3,.big-h,.page-t,.big,.acc-b,.deal-words,.steps h3,.pushed,.wordmark,.price,.tab,.finale-dark{font-family:var(--display)!important;font-weight:400!important;letter-spacing:.005em!important;text-transform:uppercase}
+h2{font-size:30px;line-height:1.05}
+.note{color:var(--mut);font-weight:500}
+
+/* Tombol: padat, persegi, huruf poster */
+.btn{border:0;border-radius:0;padding:15px 26px;font:400 19px/1.05 var(--display);letter-spacing:.03em;text-transform:uppercase}
+.btn.sm{padding:9px 14px;font-size:15px}
+.btn:before{background:var(--pink);inset:0}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 3px var(--ink)}
+.btn.danger{box-shadow:inset 0 0 0 3px currentColor}
+@media(hover:hover){.btn:hover,.btn:focus-visible{color:#141414}.btn.ghost:hover,.btn.ghost:focus-visible{box-shadow:none}.btn.danger:hover,.btn.danger:focus-visible{color:#fff;box-shadow:none}}
+
+/* Bilah atas: hitam, tautan polos */
+header{background:#141414;color:#fff;--ink:#fff;--bg:#141414;--mut:#c9c9c4}
+.bar{padding-block:10px}
+.logo{font:400 22px/1 var(--display);letter-spacing:.02em;text-transform:uppercase;color:#fff}
+.mark{background:var(--pink);width:14px;height:22px}
+.links{gap:4px}
+.bar .btn.ghost{box-shadow:none;background:none;color:#fff;padding-inline:10px}
+.bar .btn:not(.ghost){background:var(--yellow);color:#141414}
+.bar .btn:before{background:var(--yellow)}
+.bar .btn:not(.ghost):before{background:var(--pink)}
+@media(hover:hover){.bar .btn.ghost:hover,.bar .btn.ghost:focus-visible{color:#141414}}
+.bar .note{color:#c9c9c4}
+.ai-pill{color:#c9c9c4}.ai-pill.on{color:#fff}
+#prog{background:var(--pink);z-index:12}
+#wipe{background:var(--pink)}
+
+/* Halaman pembuka */
+.hero{position:relative;z-index:3;background:var(--yellow);color:#141414;--ink:#141414;--bg:#fff;--mut:#141414;padding-top:clamp(18px,2.4vw,36px);padding-bottom:0}
+.hero h1{font-size:9.3vw;line-height:1;letter-spacing:0!important;margin-bottom:clamp(18px,2.6vw,40px)}
+.ln{padding-bottom:.06em;margin-bottom:0}
+.lede{font-size:clamp(19px,1.9vw,27px);line-height:1.28;font-weight:500;max-width:26em}
+.hero-g{grid-template-columns:5fr 7fr;align-items:start}
+.hero-doc{margin-bottom:clamp(-140px,-9vw,-48px);position:relative;z-index:4}
+.hero-doc .paper{border:0;border-radius:0;rotate:-1.8deg;background:#fff;color:#141414;--ink:#141414;--mut:#4f4f4b}
+.hero-doc .paper-h b{color:#141414}
+.hits{gap:0;margin-top:0;rotate:1deg;font:500 15px/1.3 var(--sans)}
+.hit{background:#141414;color:#fff}
+.hit+.hit{border-top:2px solid #333}
+.hit.on{background:var(--pink);color:#141414}
+@media(hover:hover){.hit:hover{background:var(--pink);color:#141414}}
+.mk{padding:.05em .08em;margin-inline:-.08em}
+
+/* Tumpukan dokumen */
+.deal{background:var(--yellow);color:#141414;--mut:#141414;--ink:#141414}
+.deal-fields{display:none}
+.deal-t,.sheets{position:relative;z-index:1}
+.deal-t h2{font:500 18px/1.3 var(--sans)!important;text-transform:none;letter-spacing:0!important}
+.deal-words{font-size:min(16vw,250px);line-height:1.02}
+.deal-t p{font-weight:500}
+.deal.is-live .deal-fields{display:block;position:absolute;inset:0;z-index:0}
+.deal-fields i{position:absolute;inset:0;display:block}
+.sheet{background:#fff;border-radius:0}
+.sheet b{font:400 clamp(26px,2.8vw,42px)/1.05 var(--display);letter-spacing:.005em;text-transform:uppercase}
+.sheet small{color:#4f4f4b}
+
+/* Pernyataan */
+.statement{font:400 clamp(44px,8.6vw,150px)/1.02 var(--display);letter-spacing:.005em;text-transform:uppercase;max-width:none}
+
+/* Baca, sorot, tanya */
+.walk{background:#141414;--ink:#fff;--mut:#c9c9c4}
+.walk-t h2{font:500 18px/1.3 var(--sans)!important;text-transform:none;letter-spacing:0!important}
+.steps h3{font-size:clamp(84px,14vw,230px);line-height:1.02}
+.steps p{font-weight:500}
+.walk-doc .paper{border:0;border-radius:0;background:#fff}
+.qa{border-radius:0;background:var(--yellow);color:#141414;font-size:16px}
+.qa .src{background:#141414;color:#fff;border-radius:0}
+
+/* Bab warna */
+.chapter>.head{margin-bottom:clamp(24px,3.4vw,52px)}
+.big-h,.head h2{font-size:clamp(46px,9vw,150px);line-height:1.02;margin-bottom:14px}
+.head p{color:inherit;font-weight:500}
+#coba{background:var(--green);color:#141414;--ink:#141414;--bg:#fff;--mut:#141414;--sheet:#fff;--step:#efefec;--line2:#141414}
+#coba .in{border:0;border-radius:0}
+#pgr{background:#fff;padding:clamp(16px,2vw,26px);margin-top:0}
+#coba .split-5-7{align-items:start}
+.gauge{height:18px}
+.gauge i{background:#141414}
+.gauge.high i{background:var(--pink)}
+.pgv,textarea.in{font-family:var(--serif)}
+.pushed{background:var(--pink);color:#141414;font-size:12vw;line-height:1.04;padding-block:clamp(20px,3vw,48px);margin:0;overflow:clip}
+.pushed p{margin:0}
+#fitur .frag{border-radius:0;background:var(--green);color:#141414;--ink:#141414;--bg:#fff;--sheet:#fff;--line:#fff;--mut:#141414}
+#fitur .frag-row:nth-child(2) .frag{rotate:1.2deg}
+#fitur .frag-row:nth-child(3) .frag{rotate:-1deg;background:var(--blue);color:#141414;--ink:#141414;--mut:#141414}
+.frag-row h3{font-size:clamp(34px,4.6vw,76px);line-height:1.04}
+.frag-row>div>p{color:inherit;font-size:20px;line-height:1.35}
+.m{border-radius:0;font-size:16px}
+.frag .m.u{background:#141414;color:#fff}
+.frag .m.a{background:#fff;color:#141414;border:0}
+.seg button{font:400 18px/1 var(--display);text-transform:uppercase;letter-spacing:.02em;color:inherit;padding:9px 14px}
+.seg button.on{background:#141414;color:#fff}
+.seg .ti{background:#141414}
+#arsitektur{background:var(--orange);color:#141414;--ink:#141414;--bg:#fff}
+.acc{display:block}
+.acc-item{background:none;padding:0;border-top:4px solid #141414}
+.acc-item:last-child{border-bottom:4px solid #141414}
+.acc-b{font-size:clamp(34px,6vw,100px);line-height:1.04;padding-block:clamp(8px,1vw,16px);color:#141414}
+.acc-b i{width:.36em;height:.36em}
+.acc-b i:before{height:5px;top:calc(50% - 2.5px)}
+.acc-b i:after{width:5px;left:calc(50% - 2.5px)}
+.acc-p p{font-size:20px;line-height:1.35;font-weight:500}
+#paket{background:var(--blue);color:#141414;--ink:#141414;--bg:#fff;--mut:#141414}
+.plan-rows{display:grid;grid-template-columns:4fr 5fr 3fr;gap:0}
+.plan-row{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:clamp(18px,2.4vw,36px);min-height:min(66svh,560px);background:#fff;color:#141414;--ink:#141414;--bg:#fff}
+.plan-row h3{font-size:clamp(46px,6.4vw,110px);line-height:1}
+.plan-row .price{font:400 clamp(22px,2.2vw,34px)/1.05 var(--display);text-transform:uppercase}
+.plan-row ul{color:inherit;font-size:16px;margin-bottom:auto}
+.plan-row .btn{width:100%;margin-top:18px}
+.plan-row.recommended{background:var(--yellow)}
+.plan-row.recommended .btn{--ink:#141414;--bg:#fff}
+.plan-row.recommended .btn:hover{--marker:var(--pink)}
+.plan-row:last-child{background:#141414;color:#fff;--ink:#fff;--bg:#141414}
+.plan-row:last-child ul{color:#fff}
+@media(hover:hover){.plan-row:hover h3{transform:translateY(-8px)}}
+#paket>.note{color:#141414}
+
+/* Penutup */
+.finale.is-live .finale-stage{background:#141414}
+.finale-dark{color:#fff;font-size:clamp(46px,9vw,150px)!important;line-height:1.02!important}
+.finale-fill{--ink:#141414;--bg:#fff}
+.finale-fill h2{font-size:clamp(46px,9vw,150px);line-height:1.02;letter-spacing:.005em}
+.finale-fill .btn:before{background:var(--pink)}
+.finale .wordmark{font-size:11.7vw;letter-spacing:.005em;line-height:1.02}
+footer{background:#141414;color:#c9c9c4;margin:0}
+
+/* Masuk */
+.auth-a{background:var(--yellow);color:#141414;--ink:#141414}
+.auth-a p{max-width:none;font:400 clamp(56px,9vw,150px)/1.04 var(--display);letter-spacing:.005em;text-transform:uppercase}
+.auth-a .mk{--marker:var(--pink)}
+.tabs{gap:6px}
+.tab{isolation:isolate;font-size:24px;line-height:1;padding:9px 14px}
+.tab.on{color:#141414}
+.tab-i{inset:0;height:auto;z-index:-1}
+.in{border:3px solid var(--ink);border-radius:0;font-weight:500}
+.in:focus{border-color:var(--ink)}
+label{font-weight:600}
+
+/* Ruang kerja */
+main.app{max-width:none;padding-inline:var(--gut)}
+.page-t{font-size:clamp(32px,4.4vw,70px);line-height:1.04}
+.auth .page-t,.auth h1{font-size:44px}
+.card{border:0;border-radius:0;background:var(--step);margin-bottom:0}
+main.app>*+*,.split>div>*+*,#admin-content>*+*{margin-top:0}
+.stats3{gap:0;background:none;border:0;border-radius:0;margin:0}
+.stats3 .card{border:0!important;color:#141414;padding:clamp(16px,2vw,30px);border-radius:0}
+.stats3 .card:nth-child(1){background:var(--yellow)}
+.stats3 .card:nth-child(2){background:var(--pink)}
+.stats3 .card:nth-child(3){background:var(--green)}
+.stats3 .note{color:#141414;font-size:16px}
+.big{font-size:clamp(64px,8vw,132px);line-height:1.02;font-variant-numeric:normal}
+.drop{border:0;border-radius:0;background:var(--blue);color:#141414;--ink:#141414;--bg:#fff;padding:clamp(28px,5vw,64px) 16px}
+.drop>p:first-child{font:400 clamp(30px,4.4vw,70px)/1.04 var(--display);text-transform:uppercase;color:#141414}
+.drop .note{color:#141414}
+.drop.over{background:var(--pink);transform:scale(1.012)}
+.li,.lg{border-top:2px solid var(--line2)}
+.nm{font-size:19px}
+.badge{border-radius:0}
+.paper{border:0;border-radius:0;background:#fff;color:#141414;--mut:#4f4f4b}
+.docv{background:#fff}
+.split{gap:0}
+.risk{background:var(--bg);margin:0 0 2px;font-weight:500}
+@media(hover:hover){.risk:hover{background:var(--pink);color:#141414}.chip:hover{background:var(--pink);border-color:var(--pink);color:#141414}}
+.gauge{height:22px;background:var(--bg)}
+.s3 h3{font:400 22px/1.1 var(--display)!important;color:var(--ink);letter-spacing:.01em!important}
+.chip{border:2px solid var(--ink);border-radius:0;font-weight:500}
+.m.a{background:var(--bg);border:0}
+.title-bar{margin-bottom:18px}
+.tabs+*,.stats3+*{margin-top:0}
+.pbox{border-radius:0}
+#toast{border-radius:0;background:#141414;color:#fff;font-weight:600}
+.src{border-radius:0}
+
+@media(max-width:900px){
+  .hero h1{font-size:9.3vw}
+  .hero-g{grid-template-columns:1fr}
+  .hero-doc .paper{rotate:-1deg}
+  .hits{rotate:.5deg}
+  .hero-doc{margin-bottom:-36px}
+  .deal-words{font-size:24vw}
+  .deal.is-live .deal-t p{display:none}
+  .steps h3{font-size:22vw}
+  .plan-rows{grid-template-columns:1fr}
+  .plan-row{min-height:0}
+  .plan-row h3{font-size:64px}
+  .statement{font-size:12.4vw}
+  .big-h,.head h2{font-size:9.6vw}
+  .pushed{font-size:12vw}
+  .auth-g{min-height:0}
+  .finale-dark{font-size:10.6vw!important}
+}
+@media(prefers-reduced-motion:no-preference){
+  /* Proses layar penuh di atas warna stabilo */
+  #proc{background:var(--yellow)}
+  .pbox{color:#141414;--ink:#141414}
+  .pbox b{color:#141414;font-size:20px}
+  .pbox ul{font:400 clamp(60px,15vw,260px)/1.04 var(--display);letter-spacing:.005em;text-transform:uppercase}
+  .pbox li{color:#141414!important}
+  .bar2{height:20px;background:#141414}
+  .bar2 i{background:var(--pink)}
+}
+
+#janji .note{font-size:20px;color:var(--ink);margin-top:18px}
+</style></head><body>
+<header><div class="bar">
+<button class="logo" data-act="go:home" aria-label="Beranda"><span class="mark"></span>Penjelas Dokumen</button><span class="sp"></span><span id="ai-indicator" class="ai-pill" role="status" aria-live="polite">Memeriksa AI</span>
+<button class="btn ghost sm" data-act="theme" aria-label="Ganti tema">Tema</button>
+<button class="btn ghost sm" id="burger" data-act="menu" aria-label="Menu">Menu</button>
+<nav class="links" id="links"></nav></div></header>
+<main id="app"></main>
+<footer><span>© 2026 Penjelas Dokumen</span><span>Project UAS Teknik Pemrograman</span></footer>
+<div id="toast" role="status"></div>
+<div id="prog" aria-hidden="true"></div><div id="wipe" aria-hidden="true"></div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
+<script>
+const SAMPLE="PERJANJIAN SEWA RUMAH. Pasal 1: Sewa sebesar Rp2.000.000 per bulan dibayar paling lambat tanggal 5. Pasal 2: Uang jaminan Rp4.000.000 tidak dapat dikembalikan jika penyewa berhenti sebelum masa sewa berakhir. Pasal 3: Keterlambatan pembayaran dikenakan denda 2% per hari dari nilai sewa. Pasal 4: Pemilik berhak menaikkan harga sewa kapan saja dengan pemberitahuan 7 hari. Pasal 5: Masa sewa 12 bulan dan diperpanjang otomatis jika tidak ada pemberitahuan 30 hari sebelumnya.";
+const SAMPLE2="LAPORAN PENJUALAN KUARTAL 3. Penjualan naik 12% dibanding kuartal 2 menjadi Rp480 juta. Biaya operasional turun 5% karena efisiensi pengiriman. Target kuartal 4 adalah Rp520 juta dan harus dicapai sebelum 31 Desember. Pelanggan baru bertambah 140 orang, sebagian besar dari media sosial. Kesimpulan: strategi promosi digital efektif dan perlu dilanjutkan.";
+const DISC="Catatan: ini penjelasan otomatis (simulasi). Untuk keputusan penting, cek ke ahlinya.";
+const ST=["Membaca teks","Memecah kalimat","Mencari bagian penting","Menyusun ringkasan"],reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const seenMsg=new Set();let lenis=null,revealIO=null;
+let S={user:null,isOwner:false,plan:"free",selectedPlan:"free",docs:[],log:[],wa:{num:"",on:true},theme:null,view:"home",mode:"login",tab:"docs",cur:null,qr:false,pick:"web"};
+let csrfToken="";
+const storageKey=email=>"pd3_data_"+encodeURIComponent(email);
+function restoreWorkspace(email,role="user",plan="free"){S.user=email;S.isOwner=role==="owner";S.plan=plan;S.selectedPlan=plan;S.view="ws";S.docs=[];S.log=[];loadWorkspace()}
+let saveTimer;
+const save=()=>{if(!S.user)return;try{localStorage.setItem(storageKey(S.user),JSON.stringify({wa:S.wa,theme:S.theme}))}catch(e){}clearTimeout(saveTimer);saveTimer=setTimeout(()=>fetch("/api/messages",{method:"PUT",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({log:S.log})}).catch(()=>{}),250)};
+async function loadWorkspace(){try{const r=await fetch("/api/workspace");if(!r.ok)throw Error();const x=await r.json();let old=null;try{old=JSON.parse(localStorage.getItem(storageKey(S.user))||"null")}catch(e){};S.docs=x.documents.map(d=>{const ss=sents(d.text);return{id:d.id,name:d.name,text:d.text,sents:ss,sum:summarize(ss)}});S.log=x.log;if(old){S.wa=old.wa||S.wa;S.theme=old.theme||S.theme}if(!S.docs.length&&old&&Array.isArray(old.docs)&&old.docs.length){for(const d of old.docs){const saved=await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({name:d.name,text:d.text})});if(saved.ok){const item=await saved.json(),ss=sents(item.text);S.docs.push({id:item.id,name:item.name,text:item.text,sents:ss,sum:summarize(ss)})}}if(!S.log.length&&Array.isArray(old.log)){S.log=old.log;await fetch("/api/messages",{method:"PUT",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({log:S.log})})}}applyTheme();S.enter=true;render()}catch(e){toast("Gagal memuat data akun")}}
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),2200)}
+const applyTheme=()=>{if(S.theme)document.documentElement.dataset.theme=S.theme;else delete document.documentElement.dataset.theme};
+const sents=t=>t.split(/(?<=\.)\s+/).filter(s=>s.trim().length>8);
+const pasal=s=>{const m=(s||"").match(/Pasal\s*(\d+)/i);return m?"Pasal "+m[1]:"Sumber"},clean=s=>s.replace(/^Pasal\s*\d+:\s*/i,"");
+function summarize(ss){const k=/pasal|perjanjian|kontrak|sewa|cicilan/i.test(ss.join(" ")),lab=i=>(k?pasal(ss[i])+": ":"")+clean(ss[i]),pick=(re,n)=>ss.map((s,i)=>re.test(s)?i:-1).filter(i=>i>=0).slice(0,n);
+ let pi=pick(/Rp|\d+\s*%|\d+\s*(hari|bulan|tahun|orang)/i,4);if(!pi.length)pi=[0,1,2].filter(i=>i<ss.length);
+ const ri=k?pick(/denda|otomatis|tidak dapat dikembalikan|kapan saja|sanksi|hangus|tanpa/i,4):pick(/penting|harus|wajib|tenggat|batas|sebelum|kesimpulan|syarat|target/i,4);
+ return{kind:k?"kontrak":"umum",lbl:k?"Bagian berisiko":"Hal yang perlu diperhatikan",ico:k?"⚠️":"📌",ring:ss.slice(0,2).map(clean).join(" ").slice(0,220),poin:pi.map(lab),risk:ri.map(lab),hi:ri,score:k?Math.min(100,ri.length*22+10):0,
+ tanya:k?["Apa yang terjadi jika saya berhenti sebelum masa kontrak habis?","Bisakah ketentuan diubah sepihak?","Bagaimana cara mengakhiri kontrak dengan benar?"]:["Apa kesimpulan utama dokumen ini?","Apa saja angka atau data pentingnya?","Adakah tenggat atau langkah lanjutan?"]}}
+function answer(d,q){if(/kesimpulan|ringkas|intinya|tentang apa|isi dokumen/i.test(q))return{t:d.sum.ring+"\n\n"+DISC,i:-1};
+ const w=q.toLowerCase().match(/\w{4,}/g)||[];let bi=-1,bs=0;
+ d.sents.forEach((s,i)=>{const l=s.toLowerCase();let c=0;w.forEach(x=>{if(l.includes(x.slice(0,5)))c++});if(c>bs){bs=c;bi=i}});
+ return bs?{t:(/Pasal/i.test(d.sents[bi])?"Menurut "+pasal(d.sents[bi])+": ":"Menurut dokumen: ")+clean(d.sents[bi])+"\n\n"+DISC,i:bi}:{t:"Informasi itu tidak ditemukan di dokumen ini.\n\n"+DISC,i:-1}}
+const botSum=d=>"Ringkasan: "+d.sum.ring+"\n\n"+d.sum.ico+" "+d.sum.lbl+":\n"+(d.sum.risk.map(x=>"• "+x).join("\n")||"• Tidak ditemukan")+"\n\nKetik pertanyaanmu tentang dokumen ini.\n\n"+DISC;
+const log=(doc,src,r,t,i,nw)=>S.log.push({id:Date.now()+Math.random(),doc,src,r,t,i:i??-1,nw:!!nw});
+function proc(done){const o=document.createElement("div");o.id="proc";o.innerHTML=`<div class="pbox"><b>Memproses dokumen</b><ul>${ST.map(s=>`<li><span>${s}</span></li>`).join("")}</ul><div class="bar2"><i></i></div></div>`;document.body.appendChild(o);
+ const li=o.querySelectorAll("li"),bar=o.querySelector(".bar2 i");let i=0;const step=()=>{if(i>0)li[i-1].className="ok";if(i<li.length){li[i].className="on";bar.style.transform=`scaleX(${(i+1)/li.length})`;i++;setTimeout(step,reduce?40:380)}else setTimeout(()=>{vt(()=>{o.remove();done()})},reduce?0:250)};step()}
+async function addDoc(name,text,src){try{const response=await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({name,text})}),saved=await response.json();if(!response.ok)throw Error(saved.error||"Gagal menyimpan dokumen");proc(()=>{const ss=sents(text),d={id:saved.id,name,text,sents:ss,sum:summarize(ss)};S.docs.unshift(d);
+ if(src==="WA"){log(d.id,"WA","u","📎 "+name);if(S.wa.on)log(d.id,"WA","a",botSum(d));else toast("Bot nonaktif: pesan tidak dibalas")}
+ else{S.cur=d.id;S.view="doc";S.tab="docs";toast("Dokumen selesai dijelaskan")}save();render();toTop()})}catch(e){toast(e.message)}}
+async function readFile(f,src){if(!f)return;
+ if(f.size>10485760)return toast("File terlalu besar (maks 10 MB)");
+ if(!/\.(pdf|png|jpe?g|txt)$/i.test(f.name))return toast("Format tidak didukung. Gunakan PDF, PNG, JPG, atau TXT");
+ if(!/\.(pdf|txt)$/i.test(f.name))return toast("Untuk sementara gunakan PDF atau TXT");
+ const form=new FormData();form.append("file",f);try{const r=await fetch("/api/extract",{method:"POST",headers:{"X-CSRF-Token":csrfToken},body:form}),d=await r.json();if(!r.ok)throw Error(d.error||"File gagal dibaca");await addDoc(d.name,d.text,src)}catch(e){toast(e.message)}}
+async function ask(q,src){q=q.trim();if(!q)return;const d=src==="WA"?S.docs[0]:S.docs.find(x=>x.id===S.cur);
+ if(src==="WA"){log(d?d.id:0,"WA","u",q);if(S.wa.on){const a=d?answer(d,q):{t:"Kirim dokumen dulu, lalu tanyakan isinya.",i:-1};log(d?d.id:0,"WA","a",a.t,a.i)}else toast("Bot nonaktif: pesan tidak dibalas")}
+ else if(d){if(!d.aiConsent){d.aiConsent=window.confirm("Pertanyaan dan kutipan dokumen akan dikirim ke Groq (layanan eksternal) untuk dijawab. Lanjutkan?");if(!d.aiConsent)return}log(d.id,"Web","u",q);d.asking=true;save();render();try{const r=await fetch(`/api/documents/${d.id}/ask`,{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({question:q,consent:true})}),x=await r.json();if(!r.ok)throw Error(x.error||"AI tidak dapat menjawab");log(d.id,"Web","a",x.answer,x.sentence_index,false)}catch(e){log(d.id,"Web","a","AI belum tersedia: "+e.message,-1,false)}d.asking=false}
+ save();render()}
+function typeOut(m){const el=$("#typ"),c=$("#chat");if(!el)return;let n=0;const iv=setInterval(()=>{if(!document.contains(el)){clearInterval(iv);m.nw=false;return}n+=3;el.textContent=m.t.slice(0,n)+(n<m.t.length?"▍":"");c.scrollTop=c.scrollHeight;if(n>=m.t.length){clearInterval(iv);m.nw=false;save();render()}},16)}
+const QR=()=>{let s=7,g="";const r=()=>(s=(s*9301+49297)%233280)/233280;for(let y=0;y<21;y++)for(let x=0;x<21;x++){let on;if((x<7||x>13)&&y<7||(x<7&&y>13)){const a=x>13?x-14:x,b=y>13?y-14:y;on=a==0||a==6||b==0||b==6||(a>1&&a<5&&b>1&&b<5)}else on=r()>.5;g+=`<i${on?' class="k"':''}></i>`}return g};
+const freshCls=m=>{const n=!S.enter&&!seenMsg.has(m.id);seenMsg.add(m.id);return n?" fresh":""};
+const msgs=(a,d)=>a.map(m=>m.nw?`<div class="m a" id="typ"></div>`:`<div class="m ${m.r}${freshCls(m)}">${esc(m.t)}${d&&m.r==="a"&&m.i>=0?`<br><button class="src" style="margin-top:8px" data-act="cite:${m.i}">${esc(pasal(d.sents[m.i]))}</button>`:""}</div>`).join("");
+const ARCHN=["Website","WhatsApp","Pembaca PDF","Retrieval","LLM API","Database"];
+const ARCH=["Website (Flask): login, upload, dan dashboard. Data tiap pengguna dipisah per akun.","WhatsApp: baru pratinjau QR. Penghubung ke WhatsApp asli dikerjakan belakangan.","Pembaca PDF: PDF berbasis teks dibaca dengan pypdf. PDF hasil scan dan foto belum didukung karena OCR belum dipasang.","Retrieval: dokumen panjang dipotong per 1.500 karakter, dan hanya potongan paling relevan yang dikirim ke AI.","LLM API: Groq, dengan instruksi khusus: jawab hanya dari dokumen dan sebut rujukannya. Teks dikirim hanya setelah pengguna menyetujui.","Database: SQLite dengan tabel users, documents, dan messages. Riwayat tersimpan per akun."];
+function pg(play){const t=$("#pgt").value.trim();if(t.length<30)return toast("Tempel teks minimal 30 karakter");const ss=sents(t),s=summarize(ss),r=$("#pgr");let k=0;
+ r.innerHTML=`<p><b>Ringkasan:</b> ${esc(s.ring)}</p>`+(s.kind==="kontrak"?`<div class="gauge ${s.score>=67?"high":""}"><i style="width:${s.score}%"></i></div><p class="note">Skor risiko ${s.score}/100</p>`:"")+`<div class="pgv">${ss.map((x,i)=>`<span class="${s.hi.includes(i)?"mk":""}"${s.hi.includes(i)?` style="--k:${k++}"`:""}>${esc(x)} </span>`).join("")}</div>`;r.classList.remove("pg-in");if(play){void r.offsetWidth;r.classList.add("pg-in")}}
+function countUp(){if(reduce)return;document.querySelectorAll("[data-n]").forEach(e=>{const n=+e.dataset.n;if(!n)return;const t0=performance.now(),d=800,tick=t=>{const p=Math.min(1,(t-t0)/d);e.textContent=Math.round(n*(1-Math.pow(1-p,4)));if(p<1&&document.contains(e))requestAnimationFrame(tick)};e.textContent="0";requestAnimationFrame(tick)})}
+function nav(){$("#links").classList.remove("open");
+ $("#links").innerHTML=S.user?`<span class="note">${esc(S.user)}</span><button class="btn ghost sm" data-act="go:ws">Workspace</button><button class="btn ghost sm" data-act="go:password">Ganti password</button>${S.isOwner?'<button class="btn ghost sm" data-act="go:admin">Dashboard owner</button>':''}<button class="btn sm" data-act="logout">Keluar</button>`
+ :`<button class="btn ghost sm" data-act="go:home">Beranda</button><button class="btn ghost sm" data-act="scroll:how">Cara kerja</button><button class="btn ghost sm" data-act="scroll:paket">Paket</button><button class="btn sm" data-act="go:auth:login">Masuk</button>`}
+const makeDoc=t=>{const ss=sents(t);return{sents:ss,sum:summarize(ss)}};
+const paperBody=(d,pre,cited)=>{let k=0;return d.sents.map((x,i)=>{const h=d.sum.hi.includes(i);return`<span id="${pre}${i}" class="${h?"mk":"plain"}${i===cited?" cited":""}"${h?` style="--k:${k++}"`:""}>${esc(x)} </span>`}).join("")};
+const tabBtn=(act,name,on)=>`<button class="tab ${on?"on":""}" data-act="${act}">${name}${on?'<i class="tab-i"></i>':""}</button>`;
+const PLANS=[["free","Gratis","Rp0","Contoh penggunaan pribadi","Simulasi hingga 3 dokumen/bulan"],["personal","Personal","Harga menyusul","Untuk penggunaan rutin","Simulasi hingga 30 dokumen/bulan"],["pro","Pro","Harga menyusul","Untuk penggunaan lebih banyak","Simulasi hingga 100 dokumen/bulan"]];
+const planRows=btn=>`<div class="plan-rows">${PLANS.map((p,i)=>`<div class="plan-row ${p[0]==="personal"?"recommended":""} rv-row" style="--i:${i}"><h3>${p[1]}</h3><div class="price">${p[2]}</div><ul><li>${p[3]}</li><li>${p[4]}</li></ul>${btn(p[0],p[1])}</div>`).join("")}</div>`;
+const MK=["#ffe14d","#ff5fa2","#39e58c","#ff7a1f","#38c6ff"];
+const SHEETS=[["Kontrak","Perjanjian Sewa Rumah","Pasal 3: Keterlambatan pembayaran dikenakan","denda 2% per hari","dari nilai sewa."],["Laporan","Laporan Penjualan Kuartal 3","Penjualan naik 12% dibanding kuartal 2 menjadi","Rp480 juta","dengan target berikutnya Rp520 juta."],["Jurnal","Jurnal Teknik Pemrograman","Hasil pengujian menunjukkan","waktu respons turun 18%","setelah kueri diberi indeks."],["Invoice","Invoice Jasa Desain","Total tagihan Rp3.250.000,","jatuh tempo 15 Januari,","dibayar melalui transfer bank."],["Surat","Surat Pemberitahuan","Berkas pendaftaran","wajib diserahkan paling lambat 31 Desember","kepada bagian administrasi."]];
+const riseH=t=>`<h2 class="rv-words big-h">${t.split(" ").map((w,i)=>`<span class="wd"><span style="--i:${i}">${w}</span></span>`).join(" ")}</h2>`;
+function setKind(n){const d=makeDoc(n===1?SAMPLE:SAMPLE2),s=d.sum,seg=()=>[[1,"Kontrak"],[2,"Laporan"]].map(x=>`<button data-act="kind:${x[0]}" class="${x[0]===n?"on":""}">${x[0]===n?'<i class="ti"></i>':""}<span>${x[1]}</span></button>`).join("");
+ const paint=()=>{const w=$("#kind");if(!w)return;w.innerHTML=`<div class="seg">${seg()}</div><div id="kind-out" class="kind-in"><b>${esc(s.lbl)}</b><ul>${s.risk.slice(0,3).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`};
+ if($("#kind")&&$("#kind").children.length)morph(paint);else paint()}
+function homeHTML(){const D=makeDoc(SAMPLE),s=D.sum,qd="Berapa denda keterlambatan?",qa=answer(D,qd),qn="Berapa biaya parkirnya?",no=answer(D,qn).t.split("\n\n")[0],short=x=>x.split(":")[0];
+ const words=t=>t.split(" ").map((w,i)=>`<span class="w" style="--i:${i}">${w}</span>`).join(" ");
+ return`<section class="hero wrap"><h1 aria-label="Pahami dokumen apa pun dalam hitungan detik"><span class="ln" aria-hidden="true" style="--i:0"><span>Pahami dokumen apa pun</span></span><span class="ln" aria-hidden="true" style="--i:1"><span>dalam hitungan detik</span></span></h1>
+ <div class="hero-g"><div class="hero-t"><p class="lede">Unggah PDF atau TXT: laporan, jurnal, kontrak, invoice, atau surat. Penjelas Dokumen merangkum, menyorot hal penting, dan menjawab dengan rujukan ke kalimat sumbernya.</p><div class="row"><button class="btn" data-act="go:auth:register">Mulai gratis</button><button class="btn ghost" data-act="demo">Coba dokumen contoh</button></div></div>
+ <div class="hero-doc" data-ui><div class="paper"><div class="paper-h"><b>perjanjian-sewa-contoh.txt</b><span>Skor risiko ${s.score}/100</span></div>${paperBody(D,"hs")}</div><div class="hits">${s.risk.map((x,k)=>`<button class="hit" style="--k:${k}" data-act="hcite:${s.hi[k]}"><span>${esc(clean(x.replace(/^Pasal\s*\d+:\s*/i,"")))}</span><span>${esc(short(x))}</span></button>`).join("")}</div></div></div></section>
+ <section class="deal" id="jenis" aria-label="Jenis dokumen yang bisa dijelaskan"><div class="deal-stage"><div class="deal-fields" aria-hidden="true">${MK.map(c=>`<i style="background:${c}"></i>`).join("")}</div><div class="deal-t"><h2>Dokumen apa pun yang kamu punya</h2><ul class="deal-words">${SHEETS.map(x=>`<li>${x[0]}.</li>`).join("")}</ul><p>Sorotannya menyesuaikan jenis dokumennya. Ini beberapa contohnya.</p></div><div class="sheets" data-ui>${SHEETS.map((x,i)=>`<article class="sheet"><b>${x[1]}</b><span>${x[2]} <span class="mk" style="--marker:${MK[(i+1)%5]}">${x[3]}</span> ${x[4]}</span><small>Contoh ${x[0].toLowerCase()}</small></article>`).join("")}</div></div></section>
+ <section class="chapter wrap" id="janji"><p class="statement" style="margin-bottom:0">${words("Setiap jawaban punya sumber.")}</p><p class="note">Dokumen dan riwayat tiap pengguna juga disimpan terpisah per akun.</p></section>
+ <section class="walk" id="how"><div class="walk-stage"><div class="walk-t"><h2>Cara kerja, <span id="walk-n">3 langkah</span></h2><ol class="steps"><li><h3><span>Baca.</span></h3><p>Unggah PDF berbasis teks atau TXT. Isinya dipecah menjadi kalimat yang bisa ditunjuk satu per satu.</p></li><li><h3><span>Sorot.</span></h3><p>Angka, tenggat, dan klausul berisiko ditandai langsung di dokumen, seperti saat kamu memegang stabilo.</p></li><li><h3><span>Tanya.</span></h3><p>Setiap jawaban menunjuk kalimat asalnya, jadi kamu bisa memeriksanya sendiri.</p></li></ol></div>
+ <div class="walk-doc" data-ui><div class="paper">${paperBody(D,"ss",qa.i)}</div><div class="qa"><b>${esc(qd)}</b><span>${esc(qa.t.split("\n\n")[0])}</span><button class="src" data-act="scite:${qa.i}">${esc(pasal(D.sents[qa.i]))}</button></div></div></div></section>
+ <section class="chapter wrap" id="coba"><div class="head" style="margin-bottom:clamp(16px,2vw,28px)">${riseH("Tester singkat")}</div><div class="split-5-7"><div><p class="rv" style="--i:1;margin-bottom:20px;font-size:20px;line-height:1.35">Coba analisis contoh dokumen sebelum membuat akun. Teks di tester ini tidak disimpan.</p><div class="row rv" style="--i:2"><button class="btn" data-act="pg">Coba analisis</button><button class="btn ghost" data-act="pgs:1">Contoh kontrak</button><button class="btn ghost" data-act="pgs:2">Contoh laporan</button></div></div><div class="rv" style="--i:1" data-ui><textarea class="in" id="pgt" rows="5" aria-label="Teks tester dokumen" data-lenis-prevent></textarea><div id="pgr"></div></div></div></section>
+ <div class="pushed" aria-hidden="true"><p><span>Hanya dari dokumen.</span></p><p><span>Selalu ada sumbernya.</span></p></div>
+ <section class="chapter wrap" id="fitur"><div class="head">${riseH("Dibangun seperti produk sungguhan.")}</div>
+ <div class="frag-row"><div class="rv"><h3>Menolak mengarang</h3><p>Jika tidak ada di dokumen, ia bilang tidak ada.</p></div><div class="frag rv-open" data-ui><div class="m u rv" style="--i:8">${esc(qn)}</div><div class="m a rv" style="--i:16">${esc(no)}</div></div></div>
+ <div class="frag-row" style="padding-bottom:0"><div class="rv"><h3>Sorotannya menyesuaikan</h3><p>Kontrak, laporan, jurnal, atau invoice punya hal penting yang berbeda. Ganti jenisnya dan lihat bedanya.</p></div><div class="frag rv-open" id="kind" data-ui></div></div></section>
+ <section class="chapter wrap" id="arsitektur"><div class="head">${riseH("Di balik layar.")}</div><div class="acc">${ARCHN.map((n,i)=>`<div class="acc-item ${i?"":"on"} rv-row" style="--i:${i}"><button class="acc-b" aria-expanded="${i?"false":"true"}" data-act="arch:${i}"><span>${n}</span><i aria-hidden="true"></i></button><div class="acc-p"><div><p>${ARCH[i]}</p></div></div></div>`).join("")}</div></section>
+ <section class="chapter wrap" id="paket"><div class="head">${riseH("Pilih paket yang sesuai")}<p class="rv" style="--i:1">Pilihan paket ditampilkan sebelum daftar. Harga dan langganan ini masih simulasi untuk UAS, belum ada tagihan.</p></div>${planRows((k,n)=>`<button class="btn ${k==="personal"?"":"ghost"}" data-act="choose-plan:${k}">Pilih ${n}</button>`)}<p class="note">Harga final ditentukan setelah biaya AI, hosting, dan WhatsApp sudah diketahui.</p></section>
+ <section class="finale"><div class="finale-stage"><p class="finale-dark" aria-hidden="true">Dokumen rumit, jadi mudah dipahami.</p><div class="finale-fill"><h2>Siap memulai?</h2><p>Jadikan dokumen rumit lebih mudah dipahami.</p><button class="btn" data-act="go:auth:register">Buka workspace</button><p class="wordmark" aria-hidden="true">${[..."Penjelas Dokumen"].map(c=>`<i>${c}</i>`).join("")}</p></div></div></section>`}
+function morph(fn){if(document.startViewTransition&&!reduce&&!document.hidden){const v=document.startViewTransition(fn);v.ready.catch(()=>{});v.finished.catch(()=>{})}else fn()}
+function vt(fn){S.enter=true;morph(fn)}
+function wipe(fn){S.enter=true;const w=$("#wipe");if(reduce||document.hidden||!w||!w.animate)return fn();let done=false;const ease="cubic-bezier(.76,0,.24,1)",go=()=>{if(done)return;done=true;fn();w.animate([{transformOrigin:"right",transform:"scaleX(1)"},{transformOrigin:"right",transform:"scaleX(0)"}],{duration:460,easing:ease,fill:"forwards"})};w.animate([{transformOrigin:"left",transform:"scaleX(0)"},{transformOrigin:"left",transform:"scaleX(1)"}],{duration:320,easing:ease,fill:"forwards"}).finished.then(go,go);setTimeout(go,520)}
+function toTop(){if(lenis)lenis.scrollTo(0,{immediate:true,force:true});window.scrollTo(0,0)}
+function glide(el){if(!el)return;if(lenis)lenis.scrollTo(el,{offset:-8,duration:1.4,easing:t=>1-Math.pow(1-t,4)});else el.scrollIntoView({behavior:reduce?"auto":"smooth"})}
+function flash(e){if(!e)return;e.scrollIntoView({block:"center",behavior:reduce?"auto":"smooth"});e.classList.remove("fl");void e.offsetWidth;e.classList.add("fl");clearTimeout(e._fl);e._fl=setTimeout(()=>e.classList.remove("fl"),1800)}
+if(window.gsap&&window.ScrollTrigger)gsap.registerPlugin(ScrollTrigger);
+let lenisTick=null;
+function smooth(on){if(on&&!lenis&&window.Lenis&&window.gsap&&window.ScrollTrigger&&!reduce&&matchMedia("(pointer:fine)").matches){lenis=new Lenis({lerp:.12,autoRaf:false});lenis.on("scroll",ScrollTrigger.update);lenisTick=t=>{if(lenis)lenis.raf(t*1000)};gsap.ticker.add(lenisTick);gsap.ticker.lagSmoothing(0)}else if(!on&&lenis){gsap.ticker.remove(lenisTick);lenis.destroy();lenis=null}}
+function reveals(){if(revealIO)revealIO.disconnect();const sel=".rv,.rv-line,.rv-open,.rv-row,.rv-words",els=document.querySelectorAll(sel);if(!els.length)return;if(reduce||!("IntersectionObserver" in window)){els.forEach(e=>e.classList.add("is-in"));return}
+ revealIO=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){e.target.classList.add("is-in");revealIO.unobserve(e.target)}},{rootMargin:"0px 0px -10% 0px"});els.forEach(e=>revealIO.observe(e))}
+let mctx=null,demoT=null;
+function killMotion(){clearInterval(demoT);if(mctx){mctx.revert();mctx=null}document.querySelectorAll(".deal,.walk,.finale").forEach(e=>{e.classList.remove("is-live");e.style.removeProperty("--hold")})}
+function scene(root,hold){root.classList.add("is-live");root.style.setProperty("--hold",hold);return gsap.timeline({defaults:{ease:"none"},scrollTrigger:{trigger:root,start:"top top",end:"bottom bottom",scrub:true,invalidateOnRefresh:true}})}
+const size=(a,b)=>({backgroundSize:a+"% 84%"});
+function heroDemo(){const hits=[...document.querySelectorAll(".hit")],mks=[...document.querySelectorAll(".hero-doc .mk")],doc=$(".hero-doc");if(!hits.length)return;let k=0,paused=false;doc.addEventListener("pointerenter",()=>{paused=true;hits.forEach(h=>h.classList.remove("on"))});doc.addEventListener("pointerleave",()=>{paused=false});
+ const tick=()=>{if(paused||document.hidden||scrollY>innerHeight*.7)return;hits.forEach(h=>h.classList.remove("on"));mks.forEach(m=>m.classList.remove("lit"));void doc.offsetWidth;hits[k].classList.add("on");mks[k].classList.add("lit");k=(k+1)%hits.length};
+ demoT=setInterval(tick,2400)}
+function initMotion(){if(reduce||!window.gsap||!window.ScrollTrigger)return;const phone=matchMedia("(max-width:767px)").matches,fine=matchMedia("(pointer:fine)").matches;
+ mctx=gsap.context(()=>{
+  const hero=$(".hero"),lines=gsap.utils.toArray(".hero .ln");
+  gsap.timeline({defaults:{ease:"none"},scrollTrigger:{trigger:hero,start:"top top",end:"bottom top",scrub:true}}).to(lines[0],{xPercent:-14},0).to(lines[1],{xPercent:14},0).to(".hero-t",{y:-70},0).to(".hero-doc",{y:-130},0);
+  if(fine){const p=$(".hero-doc .paper"),rx=gsap.quickTo(p,"rotationX",{duration:.7,ease:"power3"}),ry=gsap.quickTo(p,"rotationY",{duration:.7,ease:"power3"}),d=$(".hero-doc");d.addEventListener("pointermove",e=>{const r=d.getBoundingClientRect();ry(((e.clientX-r.left)/r.width-.5)*7);rx(-((e.clientY-r.top)/r.height-.5)*6)});d.addEventListener("pointerleave",()=>{rx(0);ry(0)})}
+
+  // Tumpukan dokumen
+  const deal=$(".deal"),tl=scene(deal,3),sheets=gsap.utils.toArray(".sheet"),wds=gsap.utils.toArray(".deal-words li"),fields=gsap.utils.toArray(".deal-fields i"),rot=[-3,2.4,-1.6,3.2,-.6],n=sheets.length,step=.86/n;gsap.set(wds.slice(1),{autoAlpha:0});
+  sheets.forEach((sh,i)=>{const t=i*step,mk=sh.querySelector(".mk");
+   if(i)tl.fromTo(sh,{yPercent:150,rotation:rot[i]*5,x:i%2?70:30},{yPercent:0,rotation:rot[i],x:0,duration:step*.8,ease:"power2.out"},t);else gsap.set(sh,{rotation:rot[0]});
+   tl.fromTo(mk,{backgroundSize:"0% 84%"},{backgroundSize:"100% 84%",duration:step*.5,ease:"power1.inOut"},t+step*.45);
+   if(i){tl.fromTo(fields[i],{clipPath:"inset(100% 0% 0% 0%)"},{clipPath:"inset(0% 0% 0% 0%)",duration:step*.7,ease:"power2.inOut"},t);tl.to(wds[i-1],{yPercent:-110,duration:step*.24,ease:"power2.in"},t);tl.set(wds[i-1],{autoAlpha:0},t+step*.24);tl.set(wds[i],{autoAlpha:1},t+step*.24);tl.fromTo(wds[i],{yPercent:110},{yPercent:0,duration:step*.36,ease:"power3.out"},t+step*.24);tl.to(sheets[i-1],{scale:.965-(n-i)*.004,duration:step*.6},t)}});
+  if(!phone)sheets.forEach((sh,i)=>tl.to(sh,{x:(i-(n-1))*44,rotation:(i-(n-1))*3.4+1,scale:1,duration:.14,ease:"power2.inOut"},.86));
+
+  // Pernyataan: tinta terisi mengikuti scroll
+  const stW=gsap.utils.toArray(".statement .w");gsap.fromTo(stW,{opacity:.28},{opacity:1,stagger:.08,ease:"none",scrollTrigger:{trigger:".statement",start:"top 85%",end:"top 35%",scrub:true}});
+
+  // Baca, sorot, tanya
+  const walk=$(".walk"),w=scene(walk,3),lis=gsap.utils.toArray(".steps>li"),paper=$(".walk-doc .paper"),spans=gsap.utils.toArray(".walk-doc .paper span"),mk=gsap.utils.toArray(".walk-doc .mk"),rest=mk.filter(x=>!x.classList.contains("cited")),plain=gsap.utils.toArray(".walk-doc .plain"),qaBox=$(".qa"),cited=$(".walk-doc .cited");
+  gsap.set(lis.slice(1),{autoAlpha:0});gsap.set(qaBox,{autoAlpha:0,y:60});gsap.set(mk,{backgroundSize:"0% 84%"});gsap.set(spans,{opacity:.22});
+  const enter=(i,t)=>{w.to(lis[i-1],{autoAlpha:0,y:-30,duration:.05},t);w.set(lis[i],{autoAlpha:1},t);w.fromTo(lis[i].querySelector("h3 span"),{yPercent:110},{yPercent:0,duration:.08,ease:"power3.out"},t);w.fromTo(lis[i].querySelector("p"),{autoAlpha:0,y:24},{autoAlpha:1,y:0,duration:.08},t+.02)};
+  w.to(spans,{opacity:1,stagger:.04,duration:.05},.02);
+  enter(1,.3);w.to(mk,{backgroundSize:"100% 84%",stagger:.055,duration:.07,ease:"power1.inOut"},.33);
+  enter(2,.64);w.to(rest,{backgroundSize:"0% 84%",opacity:.4,duration:.07},.66).to(plain,{opacity:.4,duration:.07},.66).to(paper,{scale:phone?1:1.1,duration:.14,ease:"power2.inOut"},.66).to(qaBox,{autoAlpha:1,y:0,duration:.12,ease:"power3.out"},.74).to({},{duration:.14},.86);
+  ScrollTrigger.create({trigger:walk,start:"top top",end:"bottom bottom",onUpdate:s=>{const n=$("#walk-n");if(n)n.textContent=(s.progress<.32?1:s.progress<.66?2:3)+" dari 3"}});
+  $("#walk-n").textContent="1 dari 3";
+
+  // Baris yang didorong
+  gsap.utils.toArray(".pushed span").forEach((el,i)=>gsap.fromTo(el,{x:i?"-34vw":"34vw"},{x:i?"34vw":"-34vw",ease:"none",scrollTrigger:{trigger:".pushed",start:"top bottom",end:"bottom top",scrub:true}}));
+
+  // Potongan antarmuka bergerak sedikit berbeda dari halaman
+  gsap.utils.toArray(".frag").forEach(f=>gsap.fromTo(f,{y:phone?20:70},{y:phone?-20:-70,ease:"none",scrollTrigger:{trigger:f,start:"top bottom",end:"bottom top",scrub:true}}));
+  gsap.fromTo("#paket .plan-row.recommended",{clipPath:"inset(0 100% 0 0)"},{clipPath:"inset(0 0% 0 0)",ease:"none",scrollTrigger:{trigger:"#paket .plan-rows",start:"top 85%",end:"top 45%",scrub:true}});
+
+  // Penutup: goresan stabilo memenuhi layar
+  const fin=$(".finale"),f=scene(fin,2),fill=$(".finale-fill"),inside=gsap.utils.toArray(".finale-fill>h2,.finale-fill>p:not(.wordmark),.finale-fill>.btn"),chars=gsap.utils.toArray(".wordmark i");
+  f.fromTo(fill,{clipPath:"inset(44% 100% 44% 0%)"},{clipPath:"inset(44% 0% 44% 0%)",duration:.3,ease:"power1.inOut"},.06).to(fill,{clipPath:"inset(0% 0% 0% 0%)",duration:.26,ease:"power2.inOut"},.38).to(".finale-dark",{yPercent:-12,autoAlpha:0,duration:.2},.38).fromTo(inside,{y:60,autoAlpha:0},{y:0,autoAlpha:1,stagger:.03,duration:.14,ease:"power3.out"},.56).fromTo(chars,{yPercent:115},{yPercent:0,stagger:.012,duration:.12,ease:"power3.out"},.62);
+ });
+ heroDemo();const r=()=>ScrollTrigger.refresh();requestAnimationFrame(r);if(document.fonts)document.fonts.ready.then(r)}
+document.addEventListener("pointermove",e=>{if(reduce||e.pointerType==="touch")return;const b=e.target.closest&&e.target.closest(".btn");if(magBtn&&magBtn!==b){magBtn.style.removeProperty("--mx");magBtn.style.removeProperty("--my")}magBtn=b;if(!b)return;const r=b.getBoundingClientRect();b.style.setProperty("--mx",((e.clientX-r.left)/r.width-.5)*10+"px");b.style.setProperty("--my",((e.clientY-r.top)/r.height-.5)*8+"px")},{passive:true});
+let magBtn=null,lastY=0,ticking=false;
+function onScroll(){ticking=false;const y=window.scrollY,h=$("header"),pr=$("#prog");
+ if(h)h.classList.toggle("hide",S.view==="home"&&!reduce&&y>240&&y>lastY&&!$("#links").classList.contains("open"));lastY=y;
+ if(pr){const m=document.documentElement.scrollHeight-innerHeight;pr.style.transform=`scaleX(${S.view==="home"&&m>0?y/m:0})`}
+ if(innerHeight+y>=document.documentElement.scrollHeight-4)document.querySelectorAll(".rv:not(.is-in),.rv-line:not(.is-in),.rv-open:not(.is-in),.rv-row:not(.is-in),.rv-words:not(.is-in)").forEach(e=>e.classList.add("is-in"))}
+addEventListener("scroll",()=>{if(!ticking){ticking=true;requestAnimationFrame(onScroll)}},{passive:true});
+addEventListener("resize",()=>{if(!ticking){ticking=true;requestAnimationFrame(onScroll)}},{passive:true});
+function render(){killMotion();render0();const home=S.view==="home";if(home)setKind(1);smooth(home);reveals();if(home)initMotion();onScroll();
+ if(S.enter){S.enter=false;countUp();clearTimeout(render.t);render.t=setTimeout(()=>{const a=$("#app");if(a)a.classList.remove("enter")},2800)}}
+async function loadOwnerDashboard(){try{const r=await fetch("/api/admin/dashboard");const d=await r.json();if(!r.ok)throw Error(d.error||"Tidak dapat membuka dashboard");if(S.view!=="admin")return;const a=$("#admin-content");if(!a)return;
+ a.innerHTML=`<div class="stats3 rise">${[["Akun terdaftar",d.totals.users],["Dokumen tersimpan",d.totals.documents],["Pesan tersimpan",d.totals.messages]].map(x=>`<div class="card"><small class="note">${x[0]}</small><b class="big">${x[1]}</b></div>`).join("")}</div>
+ <div class="card"><h2>Pengguna</h2>${d.users.map(u=>`<div class="lg"><div class="t"><div><b>${esc(u.email)}</b> ${u.role==="owner"?'<span class="badge">OWNER</span>':''} <span class="badge">Paket: ${esc(u.plan||"free")}</span></div><div class="note">Bergabung ${esc(u.created_at)} · ${u.document_count} dokumen · ${u.message_count} pesan</div></div>${u.role!=="owner"?`<div class="row"><button class="btn ghost sm" data-act="admin-user-reset:${u.id}">Reset password</button><button class="btn danger sm" data-act="admin-user-del:${u.id}">Hapus akun</button></div>`:""}</div>`).join("")||'<p class="note">Belum ada pengguna.</p>'}</div>
+ <div class="card"><h2>Semua dokumen <span class="badge">maks. 200 terbaru</span></h2>${d.documents.map(x=>`<div class="lg"><div class="t"><div><b>${esc(x.name)}</b> <span class="badge">${esc(x.email)}</span></div><div class="note">${esc(x.created_at)} · ${esc(x.preview)}${x.text_length>500?"…":""}</div></div><button class="btn danger sm" data-act="admin-doc-del:${x.id}">Hapus</button></div>`).join("")||'<p class="note">Belum ada dokumen.</p>'}</div>
+ <div class="card"><h2>Riwayat chat <span class="badge">maks. 200 terbaru</span></h2>${d.messages.map(x=>{const m=x.payload;return`<div class="lg"><span class="badge">${esc(x.email)}</span><div class="t"><div>${esc(m.r==="u"?"Pengguna: ":"AI: ")}${esc(m.t||"")}</div><div class="note">${esc(x.created_at)}</div></div></div>`}).join("")||'<p class="note">Belum ada riwayat.</p>'}</div>`
+ }catch(e){const a=$("#admin-content");if(a)a.innerHTML=`<div class="card"><p class="err">${esc(e.message)}</p></div>`}}
+function paintAIIndicator(state){if(typeof state==="boolean")state=state?"active":"not_configured";S.aiState=state;S.aiActive=state==="active";const el=$("#ai-indicator");if(!el)return;const labels={active:"AI aktif",not_configured:"AI belum aktif",invalid_key:"API key tidak valid",permission_denied:"Akses Groq ditolak",rate_limited:"Batas AI tercapai",unavailable:"AI tidak terhubung",unknown:"Memeriksa AI"};el.classList.toggle("on",state==="active");el.classList.toggle("off",state==="not_configured"||state==="invalid_key"||state==="permission_denied");el.classList.toggle("warn",state==="rate_limited"||state==="unavailable");el.textContent=labels[state]||labels.unknown;el.title=state==="active"?"Layanan Groq dapat dihubungi":state==="not_configured"?"Owner belum memasang API key":state==="invalid_key"?"API key Groq perlu diperiksa":state==="permission_denied"?"Periksa izin project/key di Groq":"Status layanan AI perlu diperiksa"}
+async function refreshAIStatus(){const el=$("#ai-indicator");if(el)el.textContent="Memeriksa AI";try{const r=await fetch("/api/ai-status"),d=await r.json();if(!r.ok)throw Error();paintAIIndicator(d.state||d.active)}catch(e){paintAIIndicator("unavailable")}}
+async function loadAISettings(){try{const [r,sr]=await Promise.all([fetch("/api/admin/ai-settings"),fetch("/api/ai-status")]),d=await r.json(),s=await sr.json();if(r.ok){paintAIIndicator(s.state||s.active);if($("#ai-status")){const labels={active:"AI aktif",not_configured:"AI belum aktif · tambahkan API key Groq",invalid_key:"API key tidak valid · periksa key di konsol Groq",permission_denied:"Akses Groq ditolak · periksa izin key/project/model",rate_limited:"Batas pemakaian AI tercapai",unavailable:"AI tidak terhubung · periksa internet atau layanan Groq"};$("#ai-status").textContent=(labels[s.state]||labels.unknown)+(s.state==="active"?` · model ${d.model}`:"")}}}catch(e){if($("#ai-status"))$("#ai-status").textContent="Status AI belum bisa diperiksa"}}
+async function analyzeDocWithAI(d){if(d.ai||d.aiLoading||d.aiTried)return;if(!d.aiConsent){d.aiConsent=window.confirm("Untuk membuat analisis AI, teks dokumen ini akan dikirim ke Groq (layanan eksternal). Lanjutkan? Hindari dokumen berisi data yang tidak ingin dibagikan.");if(!d.aiConsent){d.aiTried=true;d.aiError="Persetujuan AI belum diberikan.";render();return}}d.aiLoading=true;try{const r=await fetch(`/api/documents/${d.id}/analyze`,{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({consent:true})}),x=await r.json();if(!r.ok)throw Error(x.error||"Analisis AI gagal");d.sum=x.analysis;d.ai=true;d.aiTried=true;d.aiError=""}catch(e){d.aiTried=true;d.aiError=e.message}finally{d.aiLoading=false;if(S.view==="doc"&&S.cur===d.id)render()}}
+function render0(){nav();document.body.classList.toggle("auth-page",S.view==="auth");const a=$("#app"),keep=$("#docv"),keepTop=keep?keep.scrollTop:0;a.className=(S.view==="home"||S.view==="auth"?"":"app")+(S.enter?" enter":"");
+ if(S.view==="home"){a.innerHTML=homeHTML();$("#pgt").value=SAMPLE;pg(false)}
+ else if(S.view==="auth"){const reg=S.mode==="register";
+ a.innerHTML=`<div class="auth-g"><div class="auth-f"><div class="auth"><div class="tabs">${tabBtn("mode:login","Masuk",!reg)}${tabBtn("mode:register","Daftar",reg)}</div>
+ <form id="f" novalidate>${reg?`<p class="note">Paket dipilih: <b>${S.selectedPlan==="free"?"Gratis":S.selectedPlan==="personal"?"Personal":"Pro"}</b> · Simulasi, belum ada tagihan.</p>`:""}<label for="em">Email</label><input class="in" id="em" type="email" autocomplete="email"><label for="pw">Password</label>
+ <div class="pw"><input class="in" id="pw" type="password" autocomplete="${reg?"new":"current"}-password"><button type="button" class="btn ghost sm" data-act="showpw">Lihat</button></div>
+ <p class="err" id="err"></p><div class="row" style="justify-content:space-between"><button type="button" class="btn ghost" data-act="go:home">Kembali</button><button class="btn" type="submit">${reg?"Daftar":"Masuk"}</button></div></form></div></div><div class="auth-a" aria-hidden="true"><p>${reg?'Mulai dari <span class="mk">satu dokumen</span>.':'Lanjutkan <span class="mk">dokumenmu</span>.'}</p></div></div>`;
+ $("#f").onsubmit=async e=>{e.preventDefault();const em=$("#em").value.trim(),pw=$("#pw").value;
+  if(!/^\S+@\S+\.\S+$/.test(em))return $("#err").textContent="Format email tidak valid.";
+  if(pw.length<8)return $("#err").textContent="Password minimal 8 karakter.";
+  const submit=$("#f").querySelector('button[type="submit"]');submit.disabled=true;$("#err").textContent="";
+  try{const r=await fetch(reg?"/api/register":"/api/login",{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({email:em,password:pw,plan:S.selectedPlan})});const d=await r.json();
+   if(!r.ok){$("#err").textContent=d.error||"Tidak bisa masuk.";return}
+   csrfToken=d.csrf;restoreWorkspace(d.user.email,d.user.role,d.user.plan);S.tab="docs";save();render();toast(reg?"Akun berhasil dibuat":"Berhasil masuk")
+  }catch(err){$("#err").textContent="Server tidak terhubung. Jalankan website lewat Flask."}
+  finally{if(document.contains(submit))submit.disabled=false}}}
+ else if(S.view==="password"){if(!S.user){S.view="auth";return render()}a.innerHTML=`<div class="card auth rise"><h1>Ganti password</h1><p class="note">Masukkan password sekarang, lalu password baru dua kali.</p><form id="change-form" novalidate><label for="current-pw">Password sekarang</label><input class="in" id="current-pw" type="password" autocomplete="current-password" required><label for="new-pw">Password baru</label><input class="in" id="new-pw" type="password" autocomplete="new-password" required><label for="confirm-pw">Konfirmasi password baru</label><input class="in" id="confirm-pw" type="password" autocomplete="new-password" required><p class="err" id="change-error"></p><div class="row" style="justify-content:space-between"><button class="btn ghost" type="button" data-act="go:ws">Kembali</button><button class="btn" type="submit">Simpan password baru</button></div></form></div>`;$("#change-form").onsubmit=async e=>{e.preventDefault();const form=e.currentTarget,submit=form.querySelector('button[type="submit"]'),current=$("#current-pw").value,next=$("#new-pw").value,confirmation=$("#confirm-pw").value,err=$("#change-error");err.textContent="";if(next.length<8){err.textContent="Password baru minimal 8 karakter.";return}if(next!==confirmation){err.textContent="Konfirmasi password baru tidak cocok.";return}submit.disabled=true;try{const r=await fetch("/api/change-password",{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({current_password:current,new_password:next,confirmation})}),d=await r.json();if(!r.ok)throw Error(d.error||"Password gagal diganti.");form.reset();S.view="ws";render();toast("Password berhasil diganti")}catch(err){$("#change-error").textContent=err.message}finally{if(document.contains(submit))submit.disabled=false}}}
+ else if(S.view==="plan"){if(!S.user){S.view="auth";return render()}const nm={free:"Gratis",personal:"Personal",pro:"Pro"},choose=p=>`<button class="btn ${S.plan===p?"ghost":""}" data-act="set-plan:${p}">${S.plan===p?"Paket aktif":"Pilih paket"}</button>`;a.innerHTML=`<div class="title-bar"><h1 class="page-t">Paket langganan</h1><button class="btn ghost sm" data-act="go:ws">Kembali ke workspace</button></div><div class="card rise"><p>Paket kamu saat ini: <b>${nm[S.plan]||"Gratis"}</b>.</p><p class="note">Ini simulasi untuk UAS. Belum ada pembayaran atau tagihan sungguhan.</p></div>${planRows(choose)}`}
+ else if(S.view==="admin"){if(!S.isOwner){S.view="ws";return render()}a.innerHTML=`<div class="title-bar"><div><h1 class="page-t">Dashboard owner</h1><p class="note" style="margin-top:4px">Kelola pengguna dan data yang tersimpan di platform.</p></div><button class="btn ghost" data-act="go:ws">Kembali ke workspace</button></div><div class="card"><h2>Pengaturan AI</h2><p class="note" id="ai-status">Memeriksa status AI…</p><form id="ai-key-form"><label for="ai-key">Groq API key</label><input class="in" type="password" id="ai-key" autocomplete="new-password" placeholder="Tempel API key di sini" required><button class="btn" style="margin-top:10px" type="submit">Simpan API key</button></form></div><div id="admin-content"><div class="card">Memuat data…</div></div>`;loadOwnerDashboard();loadAISettings();$("#ai-key-form").onsubmit=async e=>{e.preventDefault();const form=e.currentTarget,button=form.querySelector("button"),key=$("#ai-key").value.trim();if(!key)return;button.disabled=true;try{const r=await fetch("/api/admin/ai-settings",{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({api_key:key})}),d=await r.json();if(!r.ok)throw Error(d.error||"API key gagal disimpan");form.reset();refreshAIStatus();loadAISettings();toast("API key berhasil disimpan")}catch(err){toast(err.message)}finally{button.disabled=false}}}
+ else if(S.view==="ws"){const T=(k,n)=>tabBtn("tab:"+k,n,S.tab===k);
+ let h=`<div class="tabs">${T("docs","Dokumen")}${T("wa","WhatsApp")}${T("log","Riwayat chat")}${T("plan","Paket saya")}</div>`;
+ if(S.tab==="docs")h+=`<div class="stats3 rise">${[["Dokumen",S.docs.length],["Bagian berisiko",S.docs.reduce((n,d)=>n+d.sum.risk.length,0)],["Pertanyaan dijawab",S.log.filter(m=>m.r==="u").length]].map(x=>`<div class="card"><small class="note">${x[0]}</small><b class="big" data-n="${x[1]}">${x[1]}</b></div>`).join("")}</div><div class="card rise" style="--i:1"><h2>Kirim dokumen</h2><div class="drop" id="drop"><p>Tarik file ke sini, atau</p><div class="row" style="justify-content:center"><button class="btn" data-act="pick">Pilih file</button><button class="btn ghost" data-act="sample">Contoh kontrak</button><button class="btn ghost" data-act="sample2">Contoh laporan</button></div><p class="note">PDF berbasis teks atau TXT. Maks 10 MB. PDF hasil scan dan foto belum mendukung OCR. Jika AI aktif, teks hanya dikirim setelah kamu menyetujuinya.</p></div></div>
+ <div class="card rise" style="--i:2"><h2>Dokumen saya</h2>${S.docs.length?S.docs.map((d,i)=>`<div class="li" style="--i:${Math.min(i,7)}"><button class="nm" ${S.cur===d.id?'style="view-transition-name:doc-title"':""} data-act="open:${d.id}">${esc(d.name)}</button><button class="btn ghost sm" data-act="open:${d.id}">Buka</button><button class="btn danger sm" data-act="del:${d.id}">Hapus</button></div>`).join(""):'<p class="note">Belum ada dokumen. Kirim satu, atau coba dokumen contoh.</p>'}</div>`;
+ else if(S.tab==="plan"){const p=S.plan||"free",names={free:"Gratis",personal:"Personal",pro:"Pro"};h+=`<div class="card rise"><h2>Paket saya: ${names[p]||"Gratis"}</h2><p class="note">Paket masih simulasi untuk UAS. Belum ada pembayaran atau tagihan sungguhan.</p><button class="btn ghost" data-act="go:plan">Lihat dan ubah paket</button></div>`}
+ else if(S.tab==="wa"){
+ h+=`<div class="wa"><div class="card rise"><h2>Hubungkan WhatsApp</h2><p class="note">Jika koneksi WhatsApp tersedia, percakapan dilakukan langsung di WhatsApp.</p>${S.qr?`<div class="qr" aria-label="QR simulasi">${QR()}</div><p class="note">QR ini hanya pratinjau; belum dapat dipindai untuk menghubungkan WhatsApp asli.</p><button class="btn ghost" data-act="qr">Tutup pratinjau QR</button>`:`<button class="btn" data-act="qr">Tampilkan QR</button>`}</div></div>`}
+ else h+=`<div class="card rise"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">Riwayat chat</h2><button class="btn danger sm" data-act="clearlog">Hapus riwayat</button></div>
+ ${S.log.length?[...S.log].reverse().map((m,i)=>{const d=S.docs.find(x=>x.id===m.doc);return`<div class="lg" style="--i:${Math.min(i,7)}"><span class="badge">${m.src==="WA"?"WhatsApp":"Web"}</span><div class="t"><div>${esc(m.r==="u"?"Kamu: ":"AI: ")+esc(m.t)}</div><div class="note">${d?esc(d.name):"Tanpa dokumen"}</div></div>${d?`<button class="btn ghost sm" data-act="open:${d.id}">Buka</button>`:""}</div>`}).join(""):'<p class="note">Belum ada percakapan.</p>'}</div>`;
+ a.innerHTML=h+'<input type="file" id="file" hidden accept=".pdf,.txt">';
+ $("#file").onchange=e=>{readFile(e.target.files[0],S.pick);e.target.value=""};
+ const dr=$("#drop");if(dr){["dragover","dragenter"].forEach(n=>dr.addEventListener(n,e=>{e.preventDefault();dr.classList.add("over")}));["dragleave","drop"].forEach(n=>dr.addEventListener(n,e=>{e.preventDefault();dr.classList.remove("over");if(n==="drop")readFile(e.dataTransfer.files[0],"web")}))}
+ const c=$("#chat");if(c)c.scrollTop=c.scrollHeight}
+ else if(S.view==="doc"){const d=S.docs.find(x=>x.id===S.cur);if(!d){S.view="ws";return render()}const s=d.sum,lv=s.score<34?"Rendah":s.score<67?"Sedang":"Tinggi",ms=S.log.filter(m=>m.doc===d.id);
+ let mk=0;a.innerHTML=`<div class="title-bar"><div class="row" style="min-width:0"><button class="btn ghost sm" data-act="go:ws">Kembali</button><h1 class="page-t" style="view-transition-name:doc-title">${esc(d.name)}</h1></div><button class="btn danger sm" data-act="del:${d.id}">Hapus dokumen</button></div>
+ <div class="split"><div class="paper docv" id="docv" data-lenis-prevent>${d.sents.map((x,i)=>`<span id="s${i}" class="${s.hi.includes(i)?"mk":""}"${s.hi.includes(i)?` style="--k:${mk++}"`:""}>${esc(x)} </span>`).join("")}</div>
+ <div><div class="card rise"><h2>Hasil analisis ${d.ai?'<span class="badge">AI Groq</span>':''}</h2>${d.aiLoading?'<p class="note">AI sedang membaca dokumen…</p>':d.aiError?`<p class="note">AI belum tersedia: ${esc(d.aiError)} <button class="btn ghost sm" data-act="ai-retry:${d.id}">Coba lagi</button></p>`:d.ai?'<p class="note">Jawaban dibuat AI berdasarkan isi dokumen.</p>':'<p class="note">Ringkasan dasar sementara. Konfirmasi dulu sebelum teks dokumen dikirim ke AI.</p>'}<div class="s3"><h3>Ringkasan</h3><p style="margin:0">${esc(s.ring)}</p></div>
+ ${s.kind==="kontrak"?`<div class="s3"><h3>Skor risiko: ${s.score}/100 (${lv})</h3><div class="gauge ${s.score>=67?"high":""}"><i style="width:${s.score}%"></i></div></div>`:""}
+ <div class="s3"><h3>Poin penting</h3><ul>${s.poin.map(x=>`<li>${esc(x)}</li>`).join("")||"<li>Tidak ditemukan</li>"}</ul></div>
+ <div class="s3"><h3>${esc(s.lbl)} (klik untuk lihat sumber)</h3>${s.risk.map((x,k)=>`<button class="risk" style="--i:${k}" data-act="cite:${s.hi[k]}">${esc(x)}</button>`).join("")||"<p>Tidak ditemukan</p>"}</div>
+ <div class="s3"><h3>Perlu ditanyakan</h3><ul>${s.tanya.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div><p class="note">${d.ai?"AI dapat keliru. Periksa kembali kutipannya pada dokumen asli.":DISC}</p></div>
+ <div class="card rise" style="--i:1"><h2>Tanya tentang dokumen ini</h2><div class="chat" id="chat" data-lenis-prevent>${msgs(ms,d)||'<p class="note">Belum ada pertanyaan.</p>'}${d.asking?'<p class="thinking">Sedang mencari di dokumen…</p>':""}</div>
+ <div class="chips">${(s.kind==="umum"?["Apa kesimpulannya?","Jelaskan isi dokumen ini"]:["Berapa dendanya?","Kapan harus bayar?","Apa risiko berhenti?"]).map(q=>`<button class="chip" data-act="ask:${q}">${q}</button>`).join("")}</div>
+ <form class="send" id="qf"><input class="in" id="q" placeholder="Contoh: berapa denda keterlambatan?" autocomplete="off"><button class="btn" type="submit">Kirim</button></form></div></div></div>`;
+ $("#qf").onsubmit=e=>{e.preventDefault();ask($("#q").value,"Web")};const c=$("#chat");c.scrollTop=c.scrollHeight;$("#docv").scrollTop=keepTop;const nm=ms.find(m=>m.nw);if(nm)typeOut(nm);if(!d.aiTried&&!d.aiLoading)analyzeDocWithAI(d)}}
+function act(str,b){const p=str.split(":"),a=p[0],arg=p.slice(1).join(":");
+ if(a==="go"){if(p[1]==="admin"&&(!S.user||!S.isOwner)){toast("Dashboard ini khusus owner");return}wipe(()=>{if((p[1]==="ws"||p[1]==="password")&&!S.user)S.view="auth";else S.view=p[1];if(p[1]==="auth"&&p[2])S.mode=p[2];if(p[1]==="ws"&&p[2])S.tab=p[2];render();toTop()})}
+ else if(a==="mode"){vt(()=>{S.mode=arg;render()})}
+ else if(a==="menu")$("#links").classList.toggle("open");
+ else if(a==="pg")pg(true);
+ else if(a==="pgs"){$("#pgt").value=arg==="1"?SAMPLE:SAMPLE2;pg(true)}
+ else if(a==="hcite")flash($("#hs"+arg));
+ else if(a==="scite")flash($("#ss"+arg));
+ else if(a==="kind")setKind(+arg);
+ else if(a==="arch"){document.querySelectorAll(".acc-item").forEach((e,i)=>{const on=i===+arg;e.classList.toggle("on",on);e.querySelector(".acc-b").setAttribute("aria-expanded",on)})}
+ else if(a==="theme"){const cur=document.documentElement.dataset.theme,dark=cur?cur==="dark":matchMedia("(prefers-color-scheme: dark)").matches;S.theme=dark?"light":"dark";morph(()=>{applyTheme();save()})}
+ else if(a==="scroll"){if(S.view!=="home"){S.view="home";S.enter=true;render()}glide($("#"+arg))}
+ else if(a==="showpw"){const x=$("#pw");x.type=x.type==="password"?"text":"password";if(b)b.textContent=x.type==="password"?"Lihat":"Sembunyi"}
+ else if(a==="logout"){fetch("/api/logout",{method:"POST",headers:{"X-CSRF-Token":csrfToken}}).then(r=>r.json()).then(d=>{csrfToken=d.csrf||""}).catch(()=>{csrfToken=""}).finally(()=>{S.user=null;S.docs=[];S.log=[];S.wa={num:"",on:true};S.cur=null;wipe(()=>{S.view="home";render();toTop()});toast("Kamu sudah keluar")})}
+ else if(a==="demo"){if(S.view!=="home"){S.view="home";S.enter=true;render()}glide($("#coba"))}
+ else if(a==="sample"){if(!S.user){toast("Masuk dulu untuk menyimpan dokumen contoh");S.view="auth";S.mode="login";render()}else addDoc("perjanjian-sewa-contoh.txt",SAMPLE,"Web")}
+ else if(a==="sample2"){if(!S.user){toast("Masuk dulu untuk menyimpan dokumen contoh");S.view="auth";S.mode="login";render()}else addDoc("laporan-penjualan-contoh.txt",SAMPLE2,"Web")}
+ else if(a==="tab"){const order=["docs","wa","log","plan"],de=document.documentElement;de.dataset.dir=order.indexOf(arg)>=order.indexOf(S.tab)?"next":"prev";setTimeout(()=>{delete de.dataset.dir},700);vt(()=>{S.tab=arg;S.qr=false;S.view="ws";render()})}
+ else if(a==="choose-plan"){wipe(()=>{S.selectedPlan=arg;if(S.user){S.view="plan"}else{S.view="auth";S.mode="register"}render();toTop()})}
+ else if(a==="set-plan"){fetch("/api/plan",{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({plan:arg})}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);S.plan=d.plan;S.selectedPlan=d.plan;render();toast("Paket simulasi diperbarui")}).catch(e=>toast(e.message))}
+ else if(a==="pick"){S.pick="web";$("#file").click()}
+ else if(a==="wapick"){S.pick="WA";$("#file").click()}
+ else if(a==="wasample")addDoc("perjanjian-sewa-contoh.txt",SAMPLE,"WA");
+ else if(a==="qr"){S.qr=!S.qr;render()}
+ else if(a==="scan"){S.qr=false;render()}
+ else if(a==="wabot"){S.wa.on=!S.wa.on;save();render();toast(S.wa.on?"Bot aktif":"Bot dimatikan")}
+ else if(a==="waoff"){S.wa={connected:false,on:true};S.qr=false;save();render();toast("Koneksi diputuskan")}
+ else if(a==="open"){document.querySelectorAll(".nm").forEach(e=>{e.style.viewTransitionName=""});const n=b&&b.closest(".li")&&b.closest(".li").querySelector(".nm");if(n)n.style.viewTransitionName="doc-title";vt(()=>{S.cur=+arg;S.view="doc";render();toTop()})}
+ else if(a==="del"){const id=+arg;fetch(`/api/documents/${id}`,{method:"DELETE",headers:{"X-CSRF-Token":csrfToken}});S.docs=S.docs.filter(x=>x.id!==id);S.log=S.log.filter(m=>m.doc!==id);S.view="ws";S.tab="docs";save();render();toast("Dokumen dihapus")}
+ else if(a==="admin-user-del"){if(!confirm("Hapus akun ini beserta semua dokumen dan riwayat chat-nya? Tindakan ini tidak bisa dibatalkan."))return;fetch(`/api/admin/users/${arg}`,{method:"DELETE",headers:{"X-CSRF-Token":csrfToken}}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);toast("Akun dan datanya dihapus");loadOwnerDashboard()}).catch(e=>toast(e.message))}
+ else if(a==="admin-user-reset"){if(!confirm("Buat password sementara baru untuk pengguna ini? Password lamanya tidak bisa dipulihkan."))return;fetch(`/api/admin/users/${arg}/reset-password`,{method:"POST",headers:{"X-CSRF-Token":csrfToken}}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);window.prompt(`Password sementara untuk ${d.email} (salin dan sampaikan ke pengguna):`,d.temporary_password);toast("Password berhasil direset")}).catch(e=>toast(e.message))}
+ else if(a==="admin-doc-del"){if(!confirm("Hapus dokumen ini secara permanen?"))return;fetch(`/api/admin/documents/${arg}`,{method:"DELETE",headers:{"X-CSRF-Token":csrfToken}}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);toast("Dokumen dihapus");loadOwnerDashboard()}).catch(e=>toast(e.message))}
+ else if(a==="ai-retry"){const d=S.docs.find(x=>x.id===+arg);if(d){d.aiTried=false;d.aiError="";analyzeDocWithAI(d)}}
+ else if(a==="ask")ask(arg,"Web");
+ else if(a==="cite")flash($("#s"+arg));
+ else if(a==="clearlog"){S.log=[];save();render();toast("Riwayat dihapus")}}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(b)act(b.dataset.act,b)});
+async function initialize(){try{const r=await fetch("/api/me");const d=await r.json();csrfToken=d.csrf||"";if(d.authenticated)restoreWorkspace(d.user.email,d.user.role,d.user.plan);else{S.user=null;S.isOwner=false;S.view="home";S.docs=[];S.log=[]}}catch(e){S.user=null;S.isOwner=false;S.view="home";S.docs=[];S.log=[]}applyTheme();S.enter=true;render();refreshAIStatus()}
+initialize();
+</script></body></html>
