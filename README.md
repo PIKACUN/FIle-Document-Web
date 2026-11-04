@@ -1,6 +1,6 @@
 # Penjelas Dokumen
 
-Website Penjelas Dokumen dengan akun pengguna, penyimpanan dokumen/riwayat di SQLite, ekstraksi teks PDF, rangkuman, penandaan bagian penting, dan tanya jawab berbasis aturan lokal.
+Website Penjelas Dokumen dengan akun pengguna, penyimpanan dokumen/riwayat di SQLite, pembacaan PDF, TXT, foto, dan PDF scan, rangkuman, penandaan bagian penting, tanya jawab, serta koneksi WhatsApp.
 
 ## Menjalankan di Mac ini
 
@@ -17,7 +17,8 @@ Buka http://127.0.0.1:5001. Buat akun dari tombol **Mulai gratis** atau menu **D
 - Email unik dan validasi password.
 - Password disimpan sebagai hash.
 - Session cookie HttpOnly dan token CSRF untuk permintaan perubahan data.
-- Dokumen PDF berbasis teks dan TXT dibaca lalu disimpan di SQLite sesuai akun.
+- Dokumen PDF, TXT, foto, dan PDF scan dibaca lalu teksnya disimpan di SQLite sesuai akun.
+- Pengguna mendapat kode pemulihan untuk mereset password sendiri, dan login dibatasi setelah 10 percobaan gagal.
 - Daftar dokumen dan riwayat percakapan disimpan di server, bukan hanya browser.
 - Analisis dasar dan jawaban pertanyaan memakai aturan lokal serta kutipan dari dokumen.
 - Owner dapat mengaktifkan analisis AI Groq dari dashboard. Setiap pengguna diminta menyetujui pengiriman dokumennya sebelum teks dikirim untuk analisis.
@@ -29,8 +30,31 @@ Buka http://127.0.0.1:5001. Buat akun dari tombol **Mulai gratis** atau menu **D
 
 ## Batasan versi ini
 
-Jalankan `pip install -r requirements.txt` agar pembaca PDF tersedia. PDF hasil scan dan foto belum bisa dibaca karena OCR belum dipasang. AI membutuhkan Groq API key milik owner; teks dokumen hanya dikirim ke layanan itu setelah pengguna menyetujui konfirmasi di halaman analisis. Kunci API tersimpan lokal di folder `instance/` yang tidak diunggah ke Git. Bagian WhatsApp hanya pratinjau QR dan belum tersambung. Dokumen disimpan lokal di `instance/app.db` pada Mac ini.
+Jalankan `pip install -r requirements.txt` agar semua pembaca dokumen tersedia. Foto dan PDF scan dibaca model vision Groq (`GROQ_VISION_MODEL`, bawaan `qwen/qwen3.8-27b`, masih berstatus preview di Groq) setelah pengguna menyetujui, maksimal 8 halaman per PDF. Email pendaftaran belum diverifikasi. Langganan masih simulasi.
 
+Kunci API tersimpan lokal di folder `instance/` yang tidak diunggah ke Git, atau lewat variabel `GROQ_API_KEY`.
+
+## Menghubungkan WhatsApp
+
+Fitur ini memakai WhatsApp Cloud API resmi dan baru aktif setelah semua variabel ini diisi. Tanpa itu, tab WhatsApp hanya memberi tahu bahwa fitur belum aktif.
+
+| Variabel | Isi |
+| --- | --- |
+| `WHATSAPP_TOKEN` | Access token permanen dari system user Meta |
+| `WHATSAPP_PHONE_NUMBER_ID` | Phone number ID di Meta |
+| `WHATSAPP_NUMBER` | Nomor WhatsApp bisnis dengan kode negara, misalnya `628123456789` |
+| `WHATSAPP_APP_SECRET` | App secret aplikasi Meta |
+| `WHATSAPP_VERIFY_TOKEN` | Teks acak buatan sendiri |
+
+Di dashboard Meta, atur webhook ke `https://DOMAIN-KAMU/webhook/whatsapp` dengan verify token yang sama, lalu langganan field `messages`.
+
+## Test
+
+```bash
+PYTHONPATH="$PWD/.venv/lib/python3.9/site-packages" /usr/bin/python3 -m unittest discover -s tests -v
+```
+
+Test memakai database sementara dan tiruan Groq serta WhatsApp, jadi tidak menyentuh data asli maupun internet.
 
 ## Lupa password (owner lokal)
 
