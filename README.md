@@ -30,9 +30,13 @@ Buka http://127.0.0.1:5001. Buat akun dari tombol **Mulai gratis** atau menu **D
 
 ## Batasan versi ini
 
-Jalankan `pip install -r requirements.txt` agar semua pembaca dokumen tersedia. Foto dan PDF scan dibaca model vision Groq (`GROQ_VISION_MODEL`, bawaan `qwen/qwen3.8-27b`, masih berstatus preview di Groq) setelah pengguna menyetujui, maksimal 8 halaman per PDF. Email pendaftaran belum diverifikasi. Langganan masih simulasi.
+Jalankan `pip install -r requirements.txt` agar semua pembaca dokumen tersedia. Foto dan PDF scan dibaca model vision Groq (`GROQ_VISION_MODEL`, bawaan `qwen/qwen3.8-27b`, masih berstatus preview di Groq) kalau pengguna setuju, atau Tesseract di server kalau pengguna menolak atau Groq gagal, maksimal 8 halaman per PDF. Langganan masih simulasi.
 
 Kunci API tersimpan lokal di folder `instance/` yang tidak diunggah ke Git, atau lewat variabel `GROQ_API_KEY`.
+
+## Verifikasi email
+
+Aktif kalau `BREVO_API_KEY` dan `EMAIL_FROM` (pengirim yang sudah diverifikasi di Brevo) diisi. Isi juga `PUBLIC_URL`, misalnya `https://pikacun.pythonanywhere.com`. Akun lama tetap dianggap terverifikasi. Tanpa pengaturan ini, pendaftaran langsung aktif seperti sebelumnya.
 
 ## Menghubungkan WhatsApp
 

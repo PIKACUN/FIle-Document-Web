@@ -51,10 +51,10 @@ class Base(unittest.TestCase):
         self.csrf = data["csrf"]
         return data
 
-    def upload(self, name, raw, consent=False):
+    def upload(self, name, raw, mode=None):
         data = {"file": (io.BytesIO(raw), name)}
-        if consent:
-            data["consent"] = "1"
+        if mode:
+            data["ocr"] = mode
         return self.client.post("/api/extract", data=data, headers={"X-CSRF-Token": self.csrf}, content_type="multipart/form-data")
 
 
@@ -129,9 +129,36 @@ class ExtractTests(Base):
         self.register()
         self.assertEqual(self.upload("a.txt", LONG_TEXT.encode()).get_json()["text"], LONG_TEXT)
 
-    def test_photo_without_ai_key_explains(self):
+    def test_photo_without_any_reader_explains(self):
         self.register()
-        self.assertEqual(self.upload("a.png", self.picture()).status_code, 503)
+        with mock.patch.object(web, "local_ocr_text", side_effect=OSError("tidak ada")):
+            self.assertEqual(self.upload("a.png", self.picture()).status_code, 503)
+
+    def test_photo_without_ai_key_uses_server_reader(self):
+        self.register()
+        with mock.patch.object(web, "local_ocr_text", return_value=LONG_TEXT), mock.patch.object(web, "groq_completion") as groq:
+            self.assertEqual(self.upload("a.png", self.picture()).get_json()["text"], LONG_TEXT)
+        groq.assert_not_called()
+
+    def test_declining_ai_never_contacts_groq(self):
+        self.register()
+        self.key.return_value = "kunci"
+        with mock.patch.object(web, "local_ocr_text", return_value=LONG_TEXT), mock.patch.object(web, "groq_completion") as groq:
+            self.assertEqual(self.upload("a.png", self.picture(), mode="local").status_code, 200)
+        groq.assert_not_called()
+
+    def test_blocked_ai_falls_back_to_server_reader(self):
+        self.register()
+        self.key.return_value = "kunci"
+        with mock.patch.object(web, "groq_completion", side_effect=RuntimeError("Akses Groq ditolak.")), mock.patch.object(web, "local_ocr_text", return_value=LONG_TEXT):
+            self.assertEqual(self.upload("a.png", self.picture(), mode="ai").get_json()["text"], LONG_TEXT)
+
+    def test_blocked_ai_without_fallback_shows_reason(self):
+        self.register()
+        self.key.return_value = "kunci"
+        with mock.patch.object(web, "groq_completion", side_effect=RuntimeError("Akses Groq ditolak.")), mock.patch.object(web, "local_ocr_text", side_effect=OSError("x")):
+            response = self.upload("a.png", self.picture(), mode="ai")
+        self.assertEqual((response.status_code, response.get_json()["error"]), (503, "Akses Groq ditolak."))
 
     def test_photo_needs_consent_before_leaving_server(self):
         self.register()
@@ -146,7 +173,7 @@ class ExtractTests(Base):
         self.register()
         self.key.return_value = "kunci"
         with mock.patch.object(web, "groq_completion", return_value="<think>x</think>" + LONG_TEXT) as groq:
-            response = self.upload("a.png", self.picture(), consent=True)
+            response = self.upload("a.png", self.picture(), mode="ai")
         self.assertEqual(response.get_json()["text"], LONG_TEXT)
         content = groq.call_args[0][1]
         self.assertTrue(content[1]["image_url"]["url"].startswith("data:image/jpeg;base64,"))
@@ -157,17 +184,81 @@ class ExtractTests(Base):
         raw = self.blank_pdf()
         self.assertEqual(self.upload("scan.pdf", raw).status_code, 428)
         with mock.patch.object(web, "groq_completion", return_value=LONG_TEXT):
-            response = self.upload("scan.pdf", raw, consent=True)
+            response = self.upload("scan.pdf", raw, mode="ai")
         self.assertEqual(response.get_json()["text"], LONG_TEXT)
 
     def test_broken_image_is_rejected(self):
         self.register()
         self.key.return_value = "kunci"
-        self.assertEqual(self.upload("a.jpg", b"bukan gambar", consent=True).status_code, 400)
+        self.assertEqual(self.upload("a.jpg", b"bukan gambar", mode="ai").status_code, 400)
 
     def test_unknown_format_is_rejected(self):
         self.register()
         self.assertEqual(self.upload("a.exe", b"xx").status_code, 415)
+
+
+class EmailVerificationTests(Base):
+    def setUp(self):
+        super().setUp()
+        env = mock.patch.dict(os.environ, {"BREVO_API_KEY": "k", "EMAIL_FROM": "dari@test.test", "PUBLIC_URL": "https://contoh.test"})
+        env.start()
+        self.addCleanup(env.stop)
+        self.sent = []
+        outer = self
+
+        class Reply:
+            status = 201
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+        def fake_urlopen(req, timeout=None):
+            outer.assertEqual(req.full_url, "https://api.brevo.com/v3/smtp/email")
+            outer.sent.append(json.loads(req.data.decode()))
+            return Reply()
+        web.urllib.request.urlopen.side_effect = fake_urlopen
+
+    def signup(self, email=None):
+        return self.post("/api/register", {"email": email or self.email, "password": "password-uji-1"})
+
+    def link_path(self):
+        return self.sent[-1]["textContent"].split("https://contoh.test")[1]
+
+    def test_login_blocked_until_confirmed(self):
+        data = self.signup().get_json()
+        self.assertTrue(data["verify_required"])
+        self.assertEqual(self.client.get("/api/whatsapp/status").status_code, 401)
+        self.assertEqual(self.post("/api/login", {"email": self.email, "password": "password-uji-1"}).status_code, 403)
+        response = self.client.get(self.link_path())
+        self.assertEqual(response.headers["Location"], "/?verified=1")
+        self.assertEqual(self.post("/api/login", {"email": self.email, "password": "password-uji-1"}).status_code, 200)
+
+    def test_link_is_single_use(self):
+        self.signup()
+        path = self.link_path()
+        self.client.get(path)
+        self.assertEqual(self.client.get(path).headers["Location"], "/?verified=0")
+
+    def test_recovery_cannot_skip_confirmation(self):
+        code = self.signup().get_json()["recovery_code"]
+        response = self.post("/api/recover", {"email": self.email, "code": code, "new_password": "password-baru-1"})
+        self.assertEqual(response.status_code, 403)
+
+    def test_owner_email_gets_role_only_after_confirmation(self):
+        email = web.OWNER_EMAIL
+        self.signup(email)
+        web.init_db()
+        role = lambda: web.connect_db().execute("SELECT role FROM users WHERE email=?", (email,)).fetchone()["role"]
+        self.assertEqual(role(), "user")
+        self.client.get(self.link_path())
+        self.assertEqual(role(), "owner")
+
+    def test_resend_reveals_nothing_about_accounts(self):
+        self.assertEqual(self.post("/api/verify/resend", {"email": "tidakada@test.test"}).status_code, 200)
+        self.assertEqual(self.sent, [])
 
 
 class WhatsAppTests(Base):

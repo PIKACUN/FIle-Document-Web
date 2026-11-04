@@ -16,7 +16,7 @@ from getpass import getpass
 from datetime import timedelta
 from pathlib import Path
 
-from flask import Flask, g, jsonify, request, send_file, session
+from flask import Flask, g, jsonify, redirect, request, send_file, session
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -94,7 +94,9 @@ def init_db():
             conn.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'")
         if "plan" not in columns:
             conn.execute("ALTER TABLE users ADD COLUMN plan TEXT NOT NULL DEFAULT 'free'")
-        conn.execute("UPDATE users SET role='owner' WHERE email=?", (OWNER_EMAIL,))
+        if "email_verified" not in {row["name"] for row in conn.execute("PRAGMA table_info(users)")}:
+            conn.execute("ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 1")
+        conn.execute("UPDATE users SET role='owner' WHERE email=? AND email_verified=1", (OWNER_EMAIL,))
         conn.execute("""CREATE TABLE IF NOT EXISTS documents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -117,6 +119,11 @@ def init_db():
             key TEXT PRIMARY KEY,
             failures INTEGER NOT NULL,
             first_at REAL NOT NULL
+        )""")
+        conn.execute("""CREATE TABLE IF NOT EXISTS email_tokens (
+            token_hash TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            expires_at REAL NOT NULL
         )""")
         conn.execute("""CREATE TABLE IF NOT EXISTS whatsapp_codes (
             code TEXT PRIMARY KEY,
@@ -324,7 +331,31 @@ def read_image_text(jpeg_bytes):
     return "" if "TIDAK_ADA_TEKS" in reply else reply
 
 
-def ocr_pages(raw, ext):
+def local_ocr_text(jpeg_bytes):
+    """Membaca gambar di server dengan Tesseract, tanpa mengirimnya ke pihak lain."""
+    import pytesseract
+    from PIL import Image
+    languages = pytesseract.get_languages(config="")
+    lang = "ind+eng" if "ind" in languages else "eng"
+    with Image.open(io.BytesIO(jpeg_bytes)) as picture:
+        return pytesseract.image_to_string(picture, lang=lang, timeout=60).strip()
+
+
+def read_page_text(jpeg_bytes, mode):
+    ai_error = None
+    if mode == "ai":
+        try:
+            return read_image_text(jpeg_bytes)
+        except RuntimeError as exc:
+            ai_error = exc
+    try:
+        return local_ocr_text(jpeg_bytes)
+    except Exception as exc:
+        app.logger.warning("Tesseract gagal: %s", type(exc).__name__)
+        raise ExtractError(str(ai_error) if ai_error else "Pembaca foto belum tersedia di server ini.", 503)
+
+
+def ocr_pages(raw, ext, mode):
     """Mengubah foto atau PDF scan menjadi gambar lalu membacanya. Mengembalikan (teks, halaman terlewat)."""
     try:
         from PIL import Image
@@ -348,14 +379,11 @@ def ocr_pages(raw, ext):
         raise ExtractError("Pembaca PDF scan belum terpasang. Jalankan pip install -r requirements.txt.", 503)
     except Exception:
         raise ExtractError("File tidak bisa dibuka. Pastikan file tidak rusak atau terkunci.", 400)
-    try:
-        return "\n\n".join(part for part in (read_image_text(image) for image in images) if part), skipped
-    except RuntimeError as exc:
-        raise ExtractError(str(exc), 503)
+    return "\n\n".join(part for part in (read_page_text(image, mode) for image in images) if part), skipped
 
 
-def text_from_file(name, raw, ocr_consent):
-    """Mengembalikan (teks, halaman terlewat) dari isi file, atau ExtractError."""
+def text_from_file(name, raw, ocr_mode):
+    """Mengembalikan (teks, halaman terlewat). ocr_mode: "ai", "local", atau None kalau pengguna belum memilih."""
     ext = Path(name).suffix.lower()
     text, skipped, needs_ocr = "", 0, False
     if ext == ".txt":
@@ -374,11 +402,9 @@ def text_from_file(name, raw, ocr_consent):
     else:
         raise ExtractError("Format belum didukung. Gunakan PDF, TXT, PNG, JPG, atau WEBP.", 415)
     if needs_ocr:
-        if not groq_api_key():
-            raise ExtractError("Membaca foto dan PDF scan membutuhkan AI aktif. Owner perlu menambahkan Groq API key.", 503)
-        if not ocr_consent:
-            raise ExtractError("Foto atau PDF scan perlu dibaca AI. Persetujuan diperlukan.", 428, needs_consent=True)
-        text, skipped = ocr_pages(raw, ext)
+        if ocr_mode is None and groq_api_key():
+            raise ExtractError("Pilih cara membaca foto atau PDF scan ini.", 428, needs_consent=True)
+        text, skipped = ocr_pages(raw, ext, "ai" if ocr_mode == "ai" and groq_api_key() else "local")
     if len(text.strip()) < 30:
         raise ExtractError("Teks tidak ditemukan. Pastikan foto jelas dan tulisannya terbaca.", 422)
     return text[:2_000_000], skipped
@@ -638,7 +664,7 @@ def extract_document():
     if len(raw) > MAX_UPLOAD_BYTES:
         return error("File terlalu besar (maks 10 MB).", 413)
     try:
-        text, skipped = text_from_file(name, raw, request.form.get("consent") == "1")
+        text, skipped = text_from_file(name, raw, {"ai": "ai", "local": "local"}.get(request.form.get("ocr")))
     except ExtractError as exc:
         return jsonify(error=str(exc), needs_consent=exc.needs_consent), exc.status
     return jsonify(name=name, text=text, skipped_pages=skipped)
@@ -691,6 +717,64 @@ def who_am_i():
     return jsonify(authenticated=True, user={"id": user["id"], "email": user["email"], "role": user["role"], "plan": user["plan"]}, csrf=token)
 
 
+def email_ready():
+    return bool(os.getenv("BREVO_API_KEY", "").strip() and os.getenv("EMAIL_FROM", "").strip())
+
+
+def send_verification_email(user_id, email):
+    """Membuat tautan verifikasi 24 jam dan mengirimnya lewat Brevo. Mengembalikan True kalau terkirim."""
+    token = secrets.token_urlsafe(32)
+    g.db.execute("DELETE FROM email_tokens WHERE user_id=? OR expires_at<?", (user_id, time.time()))
+    g.db.execute("INSERT INTO email_tokens(token_hash,user_id,expires_at) VALUES(?,?,?)",
+        (hashlib.sha256(token.encode()).hexdigest(), user_id, time.time() + 86400))
+    g.db.commit()
+    base = os.getenv("PUBLIC_URL", "").strip().rstrip("/") or request.url_root.rstrip("/")
+    link = base + "/verify?token=" + token
+    body = json.dumps({
+        "sender": {"name": "Penjelas Dokumen", "email": os.getenv("EMAIL_FROM", "").strip()},
+        "to": [{"email": email}],
+        "subject": "Konfirmasi email Penjelas Dokumen",
+        "htmlContent": '<p>Klik tautan ini untuk mengaktifkan akunmu. Berlaku 24 jam.</p><p><a href="' + link + '">Aktifkan akun</a></p><p>Abaikan email ini kalau kamu tidak mendaftar.</p>',
+        "textContent": "Buka tautan ini untuk mengaktifkan akunmu (berlaku 24 jam): " + link,
+    }).encode("utf-8")
+    req = urllib.request.Request("https://api.brevo.com/v3/smtp/email", data=body, headers={
+        "api-key": os.getenv("BREVO_API_KEY", "").strip(), "Content-Type": "application/json", "Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as response:
+            return response.status < 300
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        app.logger.warning("Email verifikasi gagal: %s", type(exc).__name__)
+        return False
+
+
+@app.get("/verify")
+def verify_email():
+    digest = hashlib.sha256(request.args.get("token", "").encode()).hexdigest()
+    row = g.db.execute("SELECT user_id FROM email_tokens WHERE token_hash=? AND expires_at>?", (digest, time.time())).fetchone()
+    if not row:
+        return redirect("/?verified=0")
+    g.db.execute("UPDATE users SET email_verified=1 WHERE id=?", (row["user_id"],))
+    g.db.execute("UPDATE users SET role='owner' WHERE id=? AND email=?", (row["user_id"], OWNER_EMAIL))
+    g.db.execute("DELETE FROM email_tokens WHERE user_id=?", (row["user_id"],))
+    g.db.commit()
+    return redirect("/?verified=1")
+
+
+@app.post("/api/verify/resend")
+def resend_verification():
+    if not csrf_valid():
+        return error("Sesi keamanan kedaluwarsa. Muat ulang halaman.", 400)
+    email = str((request.get_json(silent=True) or {}).get("email", "")).strip().lower()
+    limit_key = "verify:" + email
+    if login_blocked(limit_key):
+        return error("Terlalu banyak permintaan. Coba lagi dalam 15 menit.", 429)
+    record_login_failure(limit_key)
+    user = g.db.execute("SELECT id, email_verified FROM users WHERE email=?", (email,)).fetchone()
+    if email_ready() and user and not user["email_verified"]:
+        send_verification_email(user["id"], email)
+    return jsonify(ok=True)
+
+
 def auth_payload(user, **extra):
     session.clear()
     session.permanent = True
@@ -716,13 +800,16 @@ def register():
     recovery_code = new_recovery_code()
     try:
         cur = g.db.execute(
-            "INSERT INTO users(email, password_hash, plan, recovery_hash) VALUES(?, ?, ?, ?)",
+            "INSERT INTO users(email, password_hash, plan, recovery_hash, email_verified) VALUES(?, ?, ?, ?, ?)",
             (email, generate_password_hash(password, method="pbkdf2:sha256"), plan,
-             generate_password_hash(recovery_code, method="pbkdf2:sha256")),
+             generate_password_hash(recovery_code, method="pbkdf2:sha256"), 0 if email_ready() else 1),
         )
         g.db.commit()
     except sqlite3.IntegrityError:
         return error("Email sudah terdaftar. Silakan masuk.", 409)
+    if email_ready():
+        sent = send_verification_email(cur.lastrowid, email)
+        return jsonify(verify_required=True, email_sent=sent, recovery_code=recovery_code), 201
     user = g.db.execute("SELECT id, email, role, plan FROM users WHERE id=?", (cur.lastrowid,)).fetchone()
     return auth_payload(user, recovery_code=recovery_code), 201
 
@@ -737,11 +824,13 @@ def login():
     limit_key = "login:" + email
     if login_blocked(limit_key):
         return error("Terlalu banyak percobaan. Coba lagi dalam 15 menit.", 429)
-    user = g.db.execute("SELECT id, email, password_hash, role, plan FROM users WHERE email=?", (email,)).fetchone()
+    user = g.db.execute("SELECT id, email, password_hash, role, plan, email_verified FROM users WHERE email=?", (email,)).fetchone()
     if not user or not check_password_hash(user["password_hash"], password):
         record_login_failure(limit_key)
         return error("Email atau password salah.", 401)
     clear_login_failures(limit_key)
+    if not user["email_verified"]:
+        return jsonify(error="Konfirmasi emailmu dulu lewat tautan yang kami kirim.", verify_required=True), 403
     return auth_payload(user)
 
 
@@ -758,10 +847,12 @@ def recover_account():
     limit_key = "recover:" + email
     if login_blocked(limit_key):
         return error("Terlalu banyak percobaan. Coba lagi dalam 15 menit.", 429)
-    user = g.db.execute("SELECT id, email, role, plan, recovery_hash FROM users WHERE email=?", (email,)).fetchone()
+    user = g.db.execute("SELECT id, email, role, plan, recovery_hash, email_verified FROM users WHERE email=?", (email,)).fetchone()
     if not user or not user["recovery_hash"] or not check_password_hash(user["recovery_hash"], code):
         record_login_failure(limit_key)
         return error("Email atau kode pemulihan salah.", 401)
+    if not user["email_verified"]:
+        return error("Konfirmasi emailmu dulu lewat tautan yang kami kirim.", 403)
     next_code = new_recovery_code()
     g.db.execute("UPDATE users SET password_hash=?, recovery_hash=? WHERE id=?", (
         generate_password_hash(new, method="pbkdf2:sha256"), generate_password_hash(next_code, method="pbkdf2:sha256"), user["id"]))
@@ -857,7 +948,7 @@ def whatsapp_file(phone, user_id, media, filename):
     if Path(name).suffix.lower() != ext:
         name = Path(name).stem + ext
     try:
-        text, skipped = text_from_file(name, whatsapp_download(media.get("id")), True)
+        text, skipped = text_from_file(name, whatsapp_download(media.get("id")), "ai")
     except ExtractError as exc:
         whatsapp_reply(phone, str(exc))
         return
